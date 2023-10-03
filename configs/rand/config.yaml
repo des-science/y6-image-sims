@@ -43,7 +43,7 @@ eval_variables:
     - "$band"
   sgal_mag_col: &gal_mag_col
     type: FormattedStr
-    format: "mag_%s"
+    format: "mag_%s_dered"
     items:
     - "$band"
   sz_col: &z_col "photoz"

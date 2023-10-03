@@ -43,7 +43,7 @@ eval_variables:
     - "$band"
   sgal_mag_col: &gal_mag_col
     type: FormattedStr
-    format: "mag_%s"
+    format: "mag_%s_dered"
     items:
     - "$band"
   sz_col: &z_col "photoz"
@@ -111,8 +111,8 @@ image:
 psf:
   type: DES_Piff
   depixelize: false
-  gi_color: null
-  iz_color: null
+  gi_color: { type: Eval, str: "mag_g - mag_i", fmag_g: { type: catalog_sampler_value, col: mag_g_dered }, fmag_i: { type: catalog_sampler_value, col: mag_i_dered } }
+  iz_color: { type: Eval, str: "mag_i - mag_z", fmag_g: { type: catalog_sampler_value, col: mag_i_dered }, fmag_i: { type: catalog_sampler_value, col: mag_z_dered } }
 
 #No knots
 gal:
