@@ -1,0 +1,195 @@
+modules:
+  - galsim.des
+  - galsim_extra
+  - montara
+  - numpy
+
+pipeline:
+  # steps: [galsim_montara, true_detection, pizza_cutter, metadetect, delete_images, delete_sources, delete_meds]
+  steps: [galsim_montara, pizza_cutter, metadetect]
+
+galsim_montara: {}
+
+# true_detection:
+#   box_size: 48
+
+# delete_images:
+#   delete_coadd: True
+#   delete_se: True
+#   delete_se_nwgint: True
+#   delete_seg: True
+
+meds:
+  cutout_types: ['image','weight','seg','bmask']
+  add_psf_data: True
+  use_joblib: True
+  use_rejectlist: False
+
+single_band_swarp: {}
+swarp:
+  coadd_bands: ["r", "i", "z"]
+src_extractor: {}
+coadd_nwgint: {}
+pizza_cutter:
+  n_jobs: 32 # more jobs leads to OOM errors
+metadetect:
+  n_jobs: 128 # don't hyperthread
+
+eval_variables:
+  sstar_mag_col: &star_mag_col
+    type: FormattedStr
+    format: "%smag"
+    items:
+    - "$band"
+  sgal_mag_col: &gal_mag_col
+    type: FormattedStr
+    format: "mag_%s"
+    items:
+    - "$band"
+  sz_col: &z_col "photoz"
+
+input:
+  # Use analytic galaxies with size and flux parameters that match the distribution seen
+  # in the COSMOS galaxies.
+  catalog_sampler:
+    file_name: /dvs_ro/cfs/cdirs/des/y3-image-sims/input_cosmos_v4.fits
+    cuts:
+      mag_i: [15., 25.] #use only 15<mag_i<25. for now.
+      isgal: [1,] #select galaxies only since we're simulating stars separately.
+      mask_flags: [0,] #apply mask flags
+      bdf_hlr: [0., 5.]
+  desstar:
+    # file_name: /dvs_ro/cfs/cdirs/des/atong/y6kp-shear/starsim/catalogs/merged.fits
+    file_name:
+        type: FormattedStr
+        format: /dvs_ro/cfs/cdirs/des/atong/y6kp-shear/starsim/catalogs/lsst_combined/%s.fits
+        items:
+        - "@output.tilename"
+    mag_i_max: 25.
+    mag_i_col: imag
+
+image:
+  type: WideScattered
+  border: 15
+
+  # The number of objects across the full focal plane.
+  # nobjects: 90000
+  nobjects:
+    type: MixedNObjects
+    ngalaxies:
+      type: RandomPoisson
+      mean: 170000
+    use_all_stars: True
+
+  #could read this from the image headers, but let's set them explicitly for now
+  xsize: 2048
+  ysize: 4096
+
+  world_pos:
+    type: RADec
+    ra:
+      type: Degrees
+      theta:
+        type: Eval
+        str: "ra_star if object_type_list[@obj_num-start_obj_num]=='star' else ra_gal"
+        fra_gal: { type: Random, min: "$ra_min_deg", max: "$ra_max_deg" }
+        fra_star: { type: DESStarValue, col: "ra" }
+    dec:
+      type: Degrees
+      theta:
+        type: Eval
+        str: "dec_star if object_type_list[@obj_num-start_obj_num]=='star' else math.degrees(dec_gal_radians)"
+        fdec_gal_radians:
+          type: RandomDistribution
+          function: "math.cos(x)"  # Uniform on the sky means P(delta) ~ cos(delta)
+          x_min: "$math.radians(dec_min_deg)"
+          x_max: "$math.radians(dec_max_deg)"
+        fdec_star: { type: DESStarValue, col: "dec" }
+
+psf:
+  type: Gaussian
+  fwhm: 0.9
+
+#No knots
+gal:
+    type: Sum
+    items:
+        - type: Exponential
+          half_light_radius: { type: catalog_sampler_value, col: bdf_hlr }
+          ellip:
+              type: GBeta
+              g: { type: Eval, str: "np.sqrt(g1**2 + g2**2)", fg1: { type: catalog_sampler_value, col: bdf_g1 }, fg2: { type: catalog_sampler_value, col: bdf_g2 } }
+              beta: { type: Random }
+          flux: { type: Eval, str: "1-fracdev", ffracdev: { type: catalog_sampler_value, col: bdf_fracdev } }
+
+        - type: DeVaucouleurs
+          half_light_radius: '@gal.items.0.half_light_radius'
+          ellip: "@gal.items.0.ellip"
+          flux: "$1-@gal.items.0.flux"
+
+    flux:
+        type: Eval
+        #Input catalog has mag
+        #convert to flux via flux = 10**(0.4*(mag_zp-mag))
+        # str: "10**(0.4*(mag_zp-mag))"
+        str: "10**(0.4*(mag_zp-20))"
+        fmag: { type: catalog_sampler_value, col: *gal_mag_col }
+
+star:
+    type: Gaussian  # Basically a delta function.
+    sigma: 1.e-6
+    flux:
+        type: Eval
+        # str: "10**( 0.4 * (mag_zp - mag))"
+        str: "10**( 0.4 * (mag_zp - 10))"
+        fmag: { type: DESStarValue, col: *star_mag_col }
+
+stamp:
+  type: MixedScene
+  objects:
+    # obj_type is specified, so these numbers aren't used
+    star: 1
+    gal: 1
+  obj_type: {type: Eval,
+    str: "object_type_list[i]",
+    ii: "$obj_num-start_obj_num"
+  }
+  draw_method: auto
+  shear:
+    type: G1G2
+    g1: 0.00
+    g2: -0.02
+  gsparams:
+    maximum_fft_size: 16384
+
+output:
+  type: DESTile
+  tilename: DES0433-2332
+  bands: ["g", "r", "i", "z"]
+  desrun: "des-pizza-slices-y6-v16"
+  imsim_data: "$os.environ['IMSIM_DATA']"
+  noise_mode: from_weight
+  add_bkg: False
+  grid_objects: False
+  nproc: 128
+
+  #Save weight and badpix extensions too
+  badpixfromfits:
+    hdu: 1
+    mask_hdu: 2
+    mask_file: "$orig_image_path"
+  weight:
+    hdu: 2
+
+  truth:
+    columns:
+      num: obj_num
+      obj_type: "@current_obj_type"
+      g1: "$(@stamp.shear).g1"
+      g2: "$(@stamp.shear).g2"
+      band: "band"
+      mag_zp: "$mag_zp"
+      z:
+          type: Eval
+          str: "-1. if @current_obj_type=='star' else z_gal"
+          fz_gal: { type: catalog_sampler_value, col: "$z_col" }
