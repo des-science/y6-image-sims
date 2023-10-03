@@ -48,7 +48,8 @@ echo "seed:	$SEED"
 # shift "$OPTIND"
 # remaining is "$@"
 
-source setup.sh
+# Source the setup script from the script directory
+source $(dirname "$0")/setup.sh
 
 # Define run directory
 RUN=$(basename $(dirname $CONFIG))
