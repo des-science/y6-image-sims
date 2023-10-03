@@ -112,7 +112,7 @@ psf:
   type: DES_Piff
   depixelize: false
   gi_color: { type: Eval, str: "mag_g - mag_i", fmag_g: { type: catalog_sampler_value, col: mag_g_dered }, fmag_i: { type: catalog_sampler_value, col: mag_i_dered } }
-  iz_color: { type: Eval, str: "mag_i - mag_z", fmag_g: { type: catalog_sampler_value, col: mag_i_dered }, fmag_i: { type: catalog_sampler_value, col: mag_z_dered } }
+  iz_color: { type: Eval, str: "mag_i - mag_z", fmag_i: { type: catalog_sampler_value, col: mag_i_dered }, fmag_z: { type: catalog_sampler_value, col: mag_z_dered } }
 
 #No knots
 gal:
