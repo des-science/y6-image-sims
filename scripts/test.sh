@@ -38,7 +38,8 @@ echo "seed:	$SEED"
 # remaining is "$@"
 
 # Source the setup script from the script directory
-source $(dirname "$0")/setup.sh
+source ./scripts/setup.sh
+# source $(realpath $(dirname "$0")/setup.sh)
 
 # Define run directory
 RUN=$(basename $(dirname $CONFIG))
