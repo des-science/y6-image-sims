@@ -1,4 +1,5 @@
 #!/bin/bash
+#SBATCH -J eastlake
 #SBATCH -A des
 #SBATCH -C cpu
 #SBATCH -q regular
