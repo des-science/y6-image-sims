@@ -129,13 +129,12 @@ def main():
             fname_plus = run_dir / "plus" / "des-pizza-slices-y6-v16" / tile / "metadetect" / f"{tile}_metadetect-config_mdetcat_part0000.fits"
             fname_minus = run_dir / "minus" / "des-pizza-slices-y6-v16" / tile / "metadetect" / f"{tile}_metadetect-config_mdetcat_part0000.fits"
 
-            fname_tp = run_dir / "plus" / "true_positions" / f"{tile}-truepositions.fits"
             if not (
                 os.path.exists(fname_plus)
                 and os.path.exists(fname_minus)
-                and os.path.exists(fname_tp)
             ):
                 continue
+
             pairs[f"{tile}_{run}"] = (fname_plus, fname_minus)
 
     print(len(pairs))
@@ -150,18 +149,18 @@ def main():
 
     d = np.concatenate(d, axis=0)
 
-    ns = 1000
+    ns = 1000  # number of bootstrap resamples
     rng = np.random.RandomState(seed=args.seed)
 
-    mn = compute_shear_pair(d)/0.02-1
-    vals = []
+    mean = compute_shear_pair(d)/0.02-1
+    bootstrap = []
     for i in tqdm.trange(ns, ncols=80):
         rind = rng.choice(d.shape[0], size=d.shape[0], replace=True)
-        vals.append(compute_shear_pair(d[rind])/0.02-1)
+        bootstrap.append(compute_shear_pair(d[rind])/0.02-1)
 
-    print("m = %0.3f +/- %0.3f [1e-3, 3-sigma]" % (mn/1e-3, np.std(vals)*3/1e-3))
-    print("m = %0.3e +/- %0.3e [3-sigma]" % (mn, np.std(vals) * 3))
-    print("m: (%0.3e, %0.3e) [3-sigma]" % (mn - np.std(vals) * 3, mn + np.std(vals) * 3))
+    print("m = %0.3f +/- %0.3f [1e-3, 3-sigma]" % (mean/1e-3, np.std(bootstrap)*3/1e-3))
+    print("m = %0.3e +/- %0.3e [3-sigma]" % (mean, np.std(bootstrap) * 3))
+    print("m: (%0.3e, %0.3e) [3-sigma]" % (mean - np.std(bootstrap) * 3, mean + np.std(bootstrap) * 3))
 
 if __name__ == "__main__":
     main()
