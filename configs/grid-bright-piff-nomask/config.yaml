@@ -106,7 +106,7 @@ output:
 
   #Save weight and badpix extensions too
   badpix:
-    hud: 1
+    hdu: 1
   weight:
     hdu: 2
 
