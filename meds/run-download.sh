@@ -18,11 +18,11 @@ if [[ ! $filename ]]; then
 fi
 echo "file:	$filename"
 
-# make sure the finished list file exists if not present
-finished="${filename%.*}-finished.txt"
-touch $finished
+# make sure the downloaded list file exists if not present
+downloaded="${filename%.*}-downloaded.txt"
+touch $downloaded
 # e.g., for tile not in the finished list
-for tile in $(comm -23 $filename $finished)
+for tile in $(comm -23 $filename $downloaded)
 do
 	# download all bands for a given tile in parallel
 	for band in g r i z
@@ -32,7 +32,7 @@ do
 	done
 	wait  # wait for each band to finish downloading
 	echo "finished tile $tile"
-	echo $tile >> $finished
+	echo $tile >> $downloaded
 done
 wait  # wait for each tile to finish downloading
 echo "finished downlading all tiles"
