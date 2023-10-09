@@ -14,19 +14,26 @@ bash tiles/run-query.sh -f tiles-y6.txt
 bash meds/run-download.sh -f tiles-y6.txt
 ```
 
-## scripts
+## eastlake
 
 `test.sh` -- quickly test a config
 ```
-bash scripts/test.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s $RANDOM
+bash eastlake/test.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s $RANDOM
 ```
 
 `run.sh` -- run a full simulation pair
 ```
-sbatch scripts/run.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s $RANDOM
+sbatch eastlake/run.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s $RANDOM
 ```
 
 `run-all.sh` -- run a full simulation pair for all tiles
 ```
-bash scripts/run-all.sh -c configs/grid-bright/config.yaml -f tiles-y6.txt
+bash eastlake/run-all.sh -c configs/grid-bright/config.yaml -f tiles-y6.txt
+```
+
+## analysis
+
+`compute_bias.py` -- compute multiplicative shear bias for output sims
+```
+python analysis/compute_bias.py $SCRATCH/y6-image-sims/grid-bright --seed $RANDOM
 ```

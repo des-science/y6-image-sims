@@ -22,8 +22,8 @@ echo "file:	$filename"
 # for tile in $(find /global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/ -mindepth 1 -maxdepth 1 -type d -regex '/global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/DES[0-9]+.[0-9]+' -printf '%f\n')
 # do
 # 	seed=$RANDOM
-# 	echo "sbatch scripts/run.sh -c $config -t $tile -s $seed"
-# 	sbatch scripts/run.sh -c $config -t $tile -s $seed
+# 	echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
+# 	sbatch eastlake/run.sh -c $config -t $tile -s $seed
 # 	sleep 1
 # done
 
@@ -32,8 +32,8 @@ touch $submitted
 for tile in $(comm -23 <(sort $filename) <(sort $submitted))
 do
 	seed=$RANDOM
-	echo "sbatch scripts/run.sh -c $config -t $tile -s $seed"
-	# sbatch scripts/run.sh -c $config -t $tile -s $seed
+	echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
+	# sbatch eastlake/run.sh -c $config -t $tile -s $seed
 	echo $tile >> $submitted
 	# sleep 0.1
 done
