@@ -8,20 +8,21 @@ export MEDS_DIR=/global/cfs/cdirs/des/y6-image-sims
 
 while getopts 'f:' opt; do
     case $opt in
-      (f)   FILE=$OPTARG;;
+      (f)   filename=$OPTARG;;
     esac
 done
 
-if [[ ! $FILE ]]; then
+if [[ ! $filename ]]; then
     printf '%s\n' "No file specified. Exiting.">&2
     exit 1
 fi
-echo "file:	$FILE"
+echo "file:	$filename"
 
 # make sure the finished list file exists if not present
-touch finished.txt
+finished="${filename%.*}-finished.txt"
+touch $finished
 # e.g., for tile not in the finished list
-for tile in $(comm -23 $FILE finished.txt)
+for tile in $(comm -23 $filename $finished)
 do
 	# download all bands for a given tile in parallel
 	for band in g r i z
@@ -31,7 +32,7 @@ do
 	done
 	wait  # wait for each band to finish downloading
 	echo "finished tile $tile"
-	echo $tile >> finished.txt
+	echo $tile >> $finished
 done
 wait  # wait for each tile to finish downloading
 echo "finished downlading all tiles"
