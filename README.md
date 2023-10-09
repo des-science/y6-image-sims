@@ -28,5 +28,5 @@ sbatch scripts/run.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s $RAN
 
 `run_all.sh` -- run a full simulation pair for all tiles
 ```
-bash scripts/run_all.sh -c configs/grid-bright/config.yaml
+bash scripts/run_all.sh -c configs/grid-bright/config.yaml -f tiles-y6.txt
 ```
