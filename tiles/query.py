@@ -56,12 +56,13 @@ def main():
     y3_100 = rng.choice(y6_and_y3_list, 100, replace=False)
     y6_900 = rng.choice(y6_not_y3_list, 900, replace=False)
 
-    tiles_set = set(y3_100) | set(y6_900)
-    if len(tiles_set) != 1000:
+    tiles = list(set(y3_100) | set(y6_900))
+    tiles.sort()
+    if len(tiles) != 1000:
         raise ValueError("Incorrect number of tiles! Found %d from y3 and %d from y6 (should be 100 and 900)" % len(y3_100), len(y6_900))
 
     with open(args.output, 'w') as fp:
-        for tile in tiles_set:
+        for tile in tiles:
             fp.write('%s\n' % tile)
 
 
