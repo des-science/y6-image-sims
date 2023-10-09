@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source setup.sh
+source tiles/setup.sh
 
 while getopts 'f:' opt; do
 	case $opt in
@@ -14,4 +14,4 @@ if [[ ! $filename ]]; then
 fi
 echo "file:	$filename"
 
-python query.py $filename --seed 13720
+python tiles/query.py $filename --seed 13720

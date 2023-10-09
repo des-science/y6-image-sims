@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source setup.sh
+source meds/setup.sh
 
 export DES_RSYNC_PASSFILE=/global/cfs/cdirs/des/y6-image-sims/rsync_pass-smau.txt
 export DESREMOTE_RSYNC=smau@desar2.cosmology.illinois.edu::ALLDESFiles/new_archive/desarchive/
@@ -27,8 +27,8 @@ do
 	# download all bands for a given tile in parallel
 	for band in g r i z
 	do
-		echo "des-pizza-cutter-prep-tile --config des-pizza-slices-y6.yaml --tilename $tile --band $band"
-		# des-pizza-cutter-prep-tile --config des-pizza-slices-y6.yaml --tilename $tile --band $band &
+		echo "des-pizza-cutter-prep-tile --config meds/des-pizza-slices-y6.yaml --tilename $tile --band $band"
+		# des-pizza-cutter-prep-tile --config meds/des-pizza-slices-y6.yaml --tilename $tile --band $band &
 	done
 	wait  # wait for each band to finish downloading
 	echo "finished tile $tile"
