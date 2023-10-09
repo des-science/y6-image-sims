@@ -41,8 +41,8 @@ def main():
 
     y3_set = set(y3_tiles)
     y6_set = set(y6_tiles)
-    y6_and_y3_set = y3_set & y6_set  # not all tiles in y3 are in y6 so get intersection
-    y6_not_y3_set = y6_set - y3_set  # not all tiles in y3 are in y6 so get intersection
+    y6_and_y3_set = y3_set & y6_set  # get tiles in y6 that are also in y3
+    y6_not_y3_set = y6_set - y3_set  # get tiles in y6 that are not in y3
 
     y6_and_y3_list = list(y6_and_y3_set)
     y6_not_y3_list = list(y6_not_y3_set)
