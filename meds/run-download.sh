@@ -31,7 +31,7 @@ do
 		# des-pizza-cutter-prep-tile --config meds/des-pizza-slices-y6.yaml --tilename $tile --band $band &
 	done
 	wait  # wait for each band to finish downloading
-	echo "finished tile $tile"
+	# echo "finished tile $tile"
 	echo $tile >> $downloaded
 done
 wait  # wait for each tile to finish downloading
