@@ -1,5 +1,7 @@
 # DES Y6 Image Sims
 
+utilities, scripts, and configs for running [eastlake](https://github.com/des-science/eastlake) for the DES Y6 image simulations
+
 ## tiles
 
 `run-query.sh` -- query easyaccess for tiles
