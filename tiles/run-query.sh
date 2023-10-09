@@ -3,14 +3,14 @@
 source setup.sh
 
 while getopts 'f:' opt; do
-    case $opt in
-      (f)   filename=$OPTARG;;
-    esac
+	case $opt in
+		(f) filename=$OPTARG;;
+	esac
 done
 
 if [[ ! $filename ]]; then
-    printf '%s\n' "No file specified. Exiting.">&2
-    exit 1
+	printf '%s\n' "No file specified. Exiting.">&2
+	exit 1
 fi
 echo "file:	$filename"
 
