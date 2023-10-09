@@ -4,14 +4,14 @@ source setup.sh
 
 while getopts 'f:' opt; do
     case $opt in
-      (f)   FILE=$OPTARG;;
+      (f)   filename=$OPTARG;;
     esac
 done
 
-if [[ ! $FILE ]]; then
+if [[ ! $filename ]]; then
     printf '%s\n' "No file specified. Exiting.">&2
     exit 1
 fi
-echo "file:	$FILE"
+echo "file:	$filename"
 
-python query.py $FILE --seed 13720
+python query.py $filename --seed 13720
