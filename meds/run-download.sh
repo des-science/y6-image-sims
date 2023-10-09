@@ -22,7 +22,7 @@ echo "file:	$filename"
 downloaded="${filename%.*}-downloaded.txt"
 touch $downloaded
 # e.g., for tile not in the finished list
-for tile in $(comm -23 $filename $downloaded)
+for tile in $(comm -23 <(sort $filename) <(sort $downloaded))
 do
 	# download all bands for a given tile in parallel
 	for band in g r i z

@@ -29,7 +29,7 @@ echo "file:	$filename"
 
 submitted="${filename%.*}-$(basename $(dirname $config))-submitted.txt"
 touch $submitted
-for tile in $(comm -23 $filename $submitted)
+for tile in $(comm -23 <(sort $filename) <(sort $submitted))
 do
 	seed=$RANDOM
 	echo "sbatch scripts/run.sh -c $config -t $tile -s $seed"
