@@ -1,9 +1,9 @@
 #!/bin/bash
 
-while getopts 'c:t:s:' opt; do
+while getopts 'c:f:' opt; do
 	case $opt in
 		(c) config=$OPTARG;;
-		(t) tiles=$OPTARG;;
+		(f) filename=$OPTARG;;
 	esac
 done
 
@@ -13,21 +13,28 @@ if [[ ! $config ]]; then
 fi
 echo "config:	$config"
 
-# if [[ ! $tiles ]]; then
-# 	printf '%s\n' "No tiles specified. Exiting.">&2
-# 	exit 1
-# fi
-# echo "tile:	$TILE"
+if [[ ! $filename ]]; then
+	printf '%s\n' "No file specified. Exiting.">&2
+	exit 1
+fi
+echo "file:	$filename"
 
-# for tile in $(cat $tiles);
+# for tile in $(find /global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/ -mindepth 1 -maxdepth 1 -type d -regex '/global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/DES[0-9]+.[0-9]+' -printf '%f\n')
 # do
-# 	echo "sbatch scripts/run.sh -c $config -t $tile -s $RANDOM"
+# 	seed=$RANDOM
+# 	echo "sbatch scripts/run.sh -c $config -t $tile -s $seed"
+# 	sbatch scripts/run.sh -c $config -t $tile -s $seed
+# 	sleep 1
 # done
 
-for tile in $(find /global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/ -mindepth 1 -maxdepth 1 -type d -regex '/global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/DES[0-9]+.[0-9]+' -printf '%f\n')
+submitted="${filename%.*}-$(basename $(dirname $config))-submitted.txt"
+touch $submitted
+for tile in $(comm -23 $filename $submitted)
 do
-	SEED=$RANDOM
-	echo "sbatch scripts/run.sh -c $config -t $tile -s $SEED"
-	sbatch scripts/run.sh -c $config -t $tile -s $SEED
-	sleep 1
+	seed=$RANDOM
+	echo "sbatch scripts/run.sh -c $config -t $tile -s $seed"
+	# sbatch scripts/run.sh -c $config -t $tile -s $seed
+	echo $tile >> $submitted
+	# sleep 0.1
 done
+echo "finished submitting all tiles"
