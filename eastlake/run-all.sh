@@ -27,8 +27,8 @@ echo "file:	$filename"
 # 	sleep 1
 # done
 
-# fix random seed
-RANDOM=13720
+# # fix random seed
+# RANDOM=13720
 
 submitted="${filename%.*}-$(basename $(dirname $config))-submitted.txt"
 touch $submitted
