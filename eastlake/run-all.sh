@@ -1,9 +1,10 @@
 #!/bin/bash
 
-while getopts 'c:f:' opt; do
+while getopts 'c:f:s:' opt; do
 	case $opt in
 		(c) config=$OPTARG;;
 		(f) filename=$OPTARG;;
+		(s) seed=$OPTARG;;
 	esac
 done
 
@@ -19,6 +20,13 @@ if [[ ! $filename ]]; then
 fi
 echo "file:	$filename"
 
+if [[ ! $seed ]]; then
+	printf '%s\n' "No seed specified. Exiting.">&2
+	exit 1
+fi
+echo "seed:	$seed"
+RANDOM=$seed
+
 # for tile in $(find /global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/ -mindepth 1 -maxdepth 1 -type d -regex '/global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/DES[0-9]+.[0-9]+' -printf '%f\n')
 # do
 # 	seed=$RANDOM
@@ -27,10 +35,7 @@ echo "file:	$filename"
 # 	sleep 1
 # done
 
-# # fix random seed
-# RANDOM=13720
-
-submitted="${filename%.*}-$(basename $(dirname $config))-submitted.txt"
+submitted="${filename%.*}-$(basename $(dirname $config))-$seed-submitted.txt"
 touch $submitted
 for tile in $(comm -23 <(sort $filename) <(sort $submitted))
 do

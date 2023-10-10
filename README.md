@@ -30,7 +30,7 @@ sbatch eastlake/run.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s $RA
 
 `run-all.sh` -- run a full simulation pair for all tiles
 ```
-bash eastlake/run-all.sh -c configs/grid-bright/config.yaml -f tiles-y6.txt
+bash eastlake/run-all.sh -c configs/grid-bright/config.yaml -f tiles-y6.txt -s $RANDOM
 ```
 
 ## analysis
