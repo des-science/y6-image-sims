@@ -27,6 +27,9 @@ echo "file:	$filename"
 # 	sleep 1
 # done
 
+# fix random seed
+RANDOM=13720
+
 submitted="${filename%.*}-$(basename $(dirname $config))-submitted.txt"
 touch $submitted
 for tile in $(comm -23 <(sort $filename) <(sort $submitted))
@@ -35,7 +38,6 @@ do
 	echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
 	# sbatch eastlake/run.sh -c $config -t $tile -s $seed
 	echo $tile >> $submitted
-	# sleep 0.1
 done
 echo "finished submitting all tiles"
 # rm -f -- $submitted
