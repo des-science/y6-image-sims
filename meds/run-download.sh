@@ -4,7 +4,7 @@ source meds/setup.sh
 
 export DES_RSYNC_PASSFILE=/global/cfs/cdirs/des/y6-image-sims/rsync_pass-smau.txt
 export DESREMOTE_RSYNC=smau@desar2.cosmology.illinois.edu::ALLDESFiles/new_archive/desarchive/
-export MEDS_DIR=/global/cfs/cdirs/des/y6-image-sims
+export MEDS_DIR=/global/cfs/cdirs/desbalro
 
 while getopts 'f:' opt; do
 	case $opt in
@@ -28,10 +28,9 @@ do
 	for band in g r i z
 	do
 		echo "des-pizza-cutter-prep-tile --config meds/des-pizza-slices-y6.yaml --tilename $tile --band $band"
-		# des-pizza-cutter-prep-tile --config meds/des-pizza-slices-y6.yaml --tilename $tile --band $band &
+		des-pizza-cutter-prep-tile --config meds/des-pizza-slices-y6.yaml --tilename $tile --band $band &
 	done
 	wait  # wait for each band to finish downloading
-	# echo "finished tile $tile"
 	echo $tile >> $downloaded
 done
 wait  # wait for each tile to finish downloading
