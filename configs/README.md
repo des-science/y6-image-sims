@@ -3,7 +3,7 @@
 ## results
 
 |	config	|	m mean	|	m std (3σ)	|	comments	|
-|---|----|---|---|
+|---|---|---|---|
 |	grid-bright	|	8.101e-04	|	6.405e-04	|	98 tiles	|
 |	grid-bright-pixel	|	4.685e-04	|	7.454e-04	|	84 tiles	|
 |	grid-bright-interp	|	5.847e-04	|	6.573e-04	|	98 tiles	|
