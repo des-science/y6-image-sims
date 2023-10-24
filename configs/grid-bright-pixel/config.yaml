@@ -93,7 +93,7 @@ output:
   imsim_data: "$os.environ['IMSIM_DATA']"
   noise_mode: from_weight
   add_bkg: False
-  grid_objects: True
+  grid_objects: hex
   nproc: 128
   analyze_with_interpimage_psf: False
 

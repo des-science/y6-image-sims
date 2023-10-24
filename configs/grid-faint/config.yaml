@@ -5,7 +5,8 @@ modules:
   - numpy
 
 pipeline:
-  steps: [galsim_montara, true_detection, pizza_cutter, metadetect, delete_images, delete_sources, delete_meds]
+  # steps: [galsim_montara, true_detection, pizza_cutter, metadetect, delete_images, delete_sources, delete_meds]
+  steps: [galsim_montara, true_detection, pizza_cutter, metadetect]
 
 galsim_montara: {}
 
@@ -92,7 +93,7 @@ output:
   imsim_data: "$os.environ['IMSIM_DATA']"
   noise_mode: from_weight
   add_bkg: False
-  grid_objects: True
+  grid_objects: hex
   nproc: 128
 
   #Save weight and badpix extensions too
