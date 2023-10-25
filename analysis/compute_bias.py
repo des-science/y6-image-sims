@@ -89,7 +89,7 @@ def compute_shear_pair(d):
     g1m_m = np.nansum(d["g1m_m"] * d["ng1m_m"]) / np.nansum(d["ng1m_m"])
     R11_m = (g1p_m - g1m_m) / 0.02
 
-    return (g1_p - g1_m) / (R11_p + R11_m)
+    return (g1_p - g1_m) / (R11_p + R11_m) / 0.02 - 1., (g1_p + g1_m) / (R11_p + R11_m)
 
 
 def get_args():
@@ -156,15 +156,24 @@ def main():
     ns = 1000  # number of bootstrap resamples
     rng = np.random.RandomState(seed=args.seed)
 
-    mean = compute_shear_pair(d)/0.02-1
+    m_mean, c_mean = compute_shear_pair(d)
     bootstrap = []
     for i in tqdm.trange(ns, ncols=80):
         rind = rng.choice(d.shape[0], size=d.shape[0], replace=True)
-        bootstrap.append(compute_shear_pair(d[rind])/0.02-1)
+        bootstrap.append(compute_shear_pair(d[rind]))
 
-    print("m = %0.3f +/- %0.3f [1e-3, 3-sigma]" % (mean/1e-3, np.std(bootstrap)*3/1e-3))
-    print("m = %0.3e +/- %0.3e [3-sigma]" % (mean, np.std(bootstrap) * 3))
-    print("m: (%0.3e, %0.3e) [3-sigma]" % (mean - np.std(bootstrap) * 3, mean + np.std(bootstrap) * 3))
+    bootstrap = np.array(bootstrap)
+    m_std, c_std = np.std(bootstrap, axis=0)
+
+    print("\v")
+    print("m:	(%0.3e, %0.3e)" % (m_mean - m_std * 3, m_mean + m_std * 3))
+    print("m mean:	%0.3e" % m_mean)
+    print("m std:	%0.3e [3 sigma]" % (m_std * 3))
+    print("\v")
+    print("c:	(%0.3e, %0.3e)" % (c_mean - c_std * 3, c_mean + c_std * 3))
+    print("c mean:	%0.3e" % c_mean)
+    print("c std:	%0.3e [3 sigma]" % (c_std * 3))
+    print("\v")
 
 if __name__ == "__main__":
     main()
