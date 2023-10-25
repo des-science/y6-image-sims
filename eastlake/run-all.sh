@@ -29,17 +29,9 @@ echo "seed:	$seed"
 RANDOM=$seed
 
 if [[ ! $njobs ]]; then
-	printf '%s\n' "No njobs specified. Running all.">&2
 	njobs=$(wc -l < $filename)
 fi
 echo "njobs:	$njobs"
-
-# for tile in $(find /global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/ -mindepth 1 -maxdepth 1 -type d -regex '/global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/DES[0-9]+.[0-9]+' -printf '%f\n')
-# do
-# 	seed=$RANDOM
-# 	echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
-# 	sbatch eastlake/run.sh -c $config -t $tile -s $seed
-# done
 
 submitted="${filename%.*}-$(basename $(dirname $config))-submitted.txt"
 touch $submitted

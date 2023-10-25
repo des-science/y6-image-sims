@@ -35,13 +35,6 @@ run=$(basename $(dirname $config))
 
 # Create the output directory
 output=$SCRATCH/y6-image-sims/$run/$tile/$seed
-# If we have already run this seed, find a new one
-while [ -d "$output" ]
-do
-	echo "$output already exists; trying a new seed"
-	seed=$RANDOM
-	output=$SCRATCH/y6-image-sims/$run/$tile/$seed
-done
 echo "Writing output to $output"
 mkdir -p $output
 
