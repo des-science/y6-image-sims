@@ -11,7 +11,7 @@ export MEDS_DIR=/global/cfs/cdirs/desbalro
 
 # export PYTHONPATH=~/software/galsim_extra:$PYTHONPATH
 # export PYTHONPATH=~/software/montara:$PYTHONPATH
-# export PYTHONPATH=~/software/eastlake:$PYTHONPATH
+export PYTHONPATH=~/software/eastlake:$PYTHONPATH
 
 # see https://joblib.readthedocs.io/en/latest/parallel.html#avoiding-over-subscription-of-cpu-resources
 export OMP_NUM_THREADS=1
