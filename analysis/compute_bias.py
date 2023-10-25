@@ -7,6 +7,8 @@ import tqdm
 import numpy as np
 import fitsio
 
+import des_y6utils
+
 
 def grid_file(*, fname, ngrid):
     d = fitsio.read(fname)
@@ -30,6 +32,8 @@ def grid_file(*, fname, ngrid):
         (d["gauss_T_ratio"] > 0.5)
         & (d["gauss_s2n"] > 10)
     )
+    # msk = des_y6utils.mdet.make_mdet_cuts(d, "5")
+    msk &= d["mfrac"] < 0.01
 
     vals = []
 
@@ -126,8 +130,8 @@ def main():
             run = run_dir.stem
             # print(f"\tRun: {run}")
 
-            fname_plus = run_dir / "plus" / "des-pizza-slices-y6-v16" / tile / "metadetect" / f"{tile}_metadetect-config_mdetcat_part0000.fits"
-            fname_minus = run_dir / "minus" / "des-pizza-slices-y6-v16" / tile / "metadetect" / f"{tile}_metadetect-config_mdetcat_part0000.fits"
+            fname_plus = run_dir / "plus" / "des-pizza-slices-y6" / tile / "metadetect" / f"{tile}_metadetect-config_mdetcat_part0000.fits"
+            fname_minus = run_dir / "minus" / "des-pizza-slices-y6" / tile / "metadetect" / f"{tile}_metadetect-config_mdetcat_part0000.fits"
 
             if not (
                 os.path.exists(fname_plus)
