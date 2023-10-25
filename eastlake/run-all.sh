@@ -34,9 +34,9 @@ RANDOM=$seed
 # 	sbatch eastlake/run.sh -c $config -t $tile -s $seed
 # done
 
-submitted="${filename%.*}-$(basename $(dirname $config))-$seed-submitted.txt"
+submitted="${filename%.*}-$(basename $(dirname $config))-submitted.txt"
 touch $submitted
-for tile in $(comm -23 <(sort $filename) <(sort $submitted))
+for tile in $(comm -23 <(sort $filename) <(sort $submitted) | shuf | head -n 100)
 do
 	seed=$RANDOM
 	echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
