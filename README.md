@@ -35,7 +35,7 @@ bash eastlake/run-all.sh -c configs/grid-bright/config.yaml -f tiles-y6.txt -s $
 
 ## analysis
 
-`compute_bias.py` -- compute multiplicative shear bias for output sims
+`compute_bias.py` -- compute multiplicative and additive shear bias for output sims
 ```
 python analysis/compute_bias.py $SCRATCH/y6-image-sims/grid-bright --seed $RANDOM
 ```
