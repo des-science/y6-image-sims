@@ -1,10 +1,11 @@
 #!/bin/bash
 
-while getopts 'c:f:s:' opt; do
+while getopts 'c:f:s:n:' opt; do
 	case $opt in
 		(c) config=$OPTARG;;
 		(f) filename=$OPTARG;;
 		(s) seed=$OPTARG;;
+		(n) njobs=$OPTARG;;
 	esac
 done
 
@@ -27,6 +28,12 @@ fi
 echo "seed:	$seed"
 RANDOM=$seed
 
+if [[ ! $njobs ]]; then
+	printf '%s\n' "No njobs specified. Running all.">&2
+	njobs=$(wc -l < $filename)
+fi
+echo "njobs:	$njobs"
+
 # for tile in $(find /global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/ -mindepth 1 -maxdepth 1 -type d -regex '/global/cfs/cdirs/des/y6-image-sims/des-pizza-slices-y6-v16/DES[0-9]+.[0-9]+' -printf '%f\n')
 # do
 # 	seed=$RANDOM
@@ -36,12 +43,11 @@ RANDOM=$seed
 
 submitted="${filename%.*}-$(basename $(dirname $config))-submitted.txt"
 touch $submitted
-for tile in $(comm -23 <(sort $filename) <(sort $submitted) | shuf | head -n 100)
+for tile in $(comm -23 <(sort $filename) <(sort $submitted) | shuf | head -n $njobs)
 do
 	seed=$RANDOM
 	echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
 	sbatch eastlake/run.sh -c $config -t $tile -s $seed
 	echo $tile >> $submitted
 done
-echo "finished submitting all tiles"
-# rm -f -- $submitted
+echo "finished submitting jobs"
