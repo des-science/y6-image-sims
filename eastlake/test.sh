@@ -47,7 +47,7 @@ mkdir -p $output
 
 echo "Running eastlake sim with positive shear"
 run-eastlake-sim \
-	-v 1 \
+	-v 3 \
 	--seed $seed \
 	$config \
 	$output/plus \
