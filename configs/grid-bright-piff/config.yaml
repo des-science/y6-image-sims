@@ -5,19 +5,18 @@ modules:
   - numpy
 
 pipeline:
-  steps: [galsim_montara, pizza_cutter, metadetect, delete_images, delete_sources]
-  # steps: [galsim_montara, pizza_cutter, metadetect]
+  steps: [galsim_montara, true_detection, pizza_cutter, metadetect, delete_images, delete_sources]
 
 galsim_montara: {}
 
-# true_detection:
-#   box_size: 48
+true_detection:
+  box_size: 48
 
-# delete_images:
-#   delete_coadd: True
-#   delete_se: True
-#   delete_se_nwgint: True
-#   delete_seg: True
+delete_images:
+  delete_coadd: True
+  delete_se: True
+  delete_se_nwgint: True
+  delete_seg: True
 
 meds:
   cutout_types: ['image','weight','seg','bmask']

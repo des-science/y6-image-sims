@@ -5,7 +5,6 @@ modules:
   - numpy
 
 pipeline:
-  # steps: [galsim_montara, true_detection, pizza_cutter, metadetect, delete_images, delete_sources, delete_meds]
   steps: [galsim_montara, true_detection, pizza_cutter, metadetect, delete_images, delete_sources]
 
 galsim_montara: {}

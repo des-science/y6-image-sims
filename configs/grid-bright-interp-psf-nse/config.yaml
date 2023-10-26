@@ -99,6 +99,7 @@ output:
   grid_objects: hex
   nproc: 128
   analyze_with_interpimage_psf: True
+  analyze_with_interpimage_psf_s2n: 100
 
   #Save weight and badpix extensions too
   badpixfromfits:
