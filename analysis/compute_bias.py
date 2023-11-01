@@ -33,7 +33,7 @@ def grid_file(*, fname, ngrid):
         & (d["gauss_s2n"] > 10)
     )
     # msk = des_y6utils.mdet.make_mdet_cuts(d, "5")
-    msk &= d["mfrac"] < 0.01
+    msk &= d["mfrac"] < 0.1
 
     vals = []
 
