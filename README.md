@@ -33,6 +33,16 @@ sbatch eastlake/run.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s $RA
 bash eastlake/run-all.sh -c configs/grid-bright/config.yaml -f tiles-y6.txt -s $RANDOM
 ```
 
+`resume.sh` -- resume a simulation pair with a checkpoint (i.e., from a failed job)
+```
+sbatch eastlake/resume.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s $RANDOM
+```
+
+`resume-all.sh` -- resume or rerun all simulation pairs that do not have a metadetect catalog output
+```
+bash eastlake/resume-all.sh -c configs/grid-bright/config.yaml
+```
+
 ## analysis
 
 `compute_bias.py` -- compute multiplicative and additive shear bias for output sims
