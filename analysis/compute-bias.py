@@ -144,6 +144,9 @@ def main():
                 os.path.exists(fname_plus)
                 and os.path.exists(fname_minus)
             ):
+                print(f"tile: {tile}	seed: {run}")
+                print(f"	plus: {os.path.exists(fname_plus)}")
+                print(f"	minus: {os.path.exists(fname_minus)}")
                 continue
 
             pairs[f"{tile}_{run}"] = (fname_plus, fname_minus)
