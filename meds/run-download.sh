@@ -35,7 +35,6 @@ do
 done
 wait  # wait for each tile to finish downloading
 echo "finished downlading all tiles"
-# rm -f -- $downloaded
 
 # for i in {0..9}  # number of processes determined by number of locks
 # do

@@ -3,7 +3,7 @@
 #SBATCH -A des
 #SBATCH -C cpu
 #SBATCH -q regular
-#SBATCH -t 01:00:00
+#SBATCH -t 00:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
@@ -31,9 +31,7 @@ echo "seed:	$seed"
 
 # Source the setup script from the script directory
 source eastlake/setup.sh
-# source $(realpath $(dirname "$0")/setup.sh)
 
-# Define run directory
 run=$(basename $(dirname $config))
 
 python analysis/compute-bias.py \
