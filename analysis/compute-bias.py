@@ -106,6 +106,13 @@ def get_args():
         default=1,
         help="RNG seed [int]",
     )
+    parser.add_argument(
+        "--n_jobs",
+        type=int,
+        required=False,
+        default=8,
+        help="Number of joblib jobs [int]",
+    )
     return parser.parse_args()
 
 
@@ -148,7 +155,7 @@ def main():
         for pfile, mfile in pairs.values()
     ]
 
-    with joblib.Parallel(n_jobs=8, backend="loky", verbose=10) as par:
+    with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
         d = par(jobs)
 
     d = np.concatenate(d, axis=0)
