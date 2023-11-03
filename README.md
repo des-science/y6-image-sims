@@ -43,6 +43,11 @@ sbatch eastlake/resume.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s 
 bash eastlake/resume-all.sh -c configs/grid-bright/config.yaml
 ```
 
+`resubmit-all.sh` -- resubmit all simulation pairs that do not have any outputs
+```
+bash eastlake/resubmit-all.sh -c configs/grid-bright/config.yaml -f tiles-y6.txt -s $RANDOM
+```
+
 ## analysis
 
 `compute_bias.py` -- compute multiplicative and additive shear bias for output sims
