@@ -49,3 +49,8 @@ bash eastlake/resume-all.sh -c configs/grid-bright/config.yaml
 ```
 python analysis/compute_bias.py $SCRATCH/y6-image-sims/grid-bright --seed $RANDOM
 ```
+
+`run.sh` -- compute multiplicative and additive shear bias for output sims (via sbatch)
+```
+sbatch analysis/run.sh -c configs/grid-bright/config.yaml -s $RANDOM
+```
