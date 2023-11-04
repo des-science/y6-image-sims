@@ -165,7 +165,7 @@ output:
   type: DESTile
   tilename: DES0433-2332
   bands: ["g", "r", "i", "z"]
-  desrun: "des-pizza-slices-y6-v16"
+  desrun: "des-pizza-slices-y6"
   imsim_data: "$os.environ['IMSIM_DATA']"
   noise_mode: from_weight
   add_bkg: False
