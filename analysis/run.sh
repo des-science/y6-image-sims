@@ -35,6 +35,6 @@ source eastlake/setup.sh
 run=$(basename $(dirname $config))
 
 python analysis/compute-bias.py \
-	$SCRATCH/y6-image-sims/$run
+	$SCRATCH/y6-image-sims/$run \
 	--seed $seed \
 	--n_jobs 128
