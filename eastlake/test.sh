@@ -30,7 +30,8 @@ echo "seed:	$seed"
 source setup.sh
 
 # Define run directory
-run=$(basename $(dirname $config))
+# run=$(basename $(dirname $config))
+run=$(basename $config .yaml)
 
 # Create the output directory
 output=$SCRATCH/y6-image-sims/$run/$tile/$seed

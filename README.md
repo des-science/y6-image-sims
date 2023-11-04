@@ -20,32 +20,32 @@ bash meds/run-download.sh -f tiles-y6.txt
 
 `test.sh` -- quickly test a config
 ```
-bash eastlake/test.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s $RANDOM
+bash eastlake/test.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM
 ```
 
 `run.sh` -- run a full simulation pair
 ```
-sbatch eastlake/run.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s $RANDOM
+sbatch eastlake/run.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM
 ```
 
 `run-all.sh` -- run a full simulation pair for all tiles
 ```
-bash eastlake/run-all.sh -c configs/grid-bright/config.yaml -f tiles-y6.txt -s $RANDOM
+bash eastlake/run-all.sh -c configs/grid-bright.yaml -f tiles-y6.txt -s $RANDOM
 ```
 
 `resume.sh` -- resume a simulation pair with a checkpoint (i.e., from a failed job)
 ```
-sbatch eastlake/resume.sh -c configs/grid-bright/config.yaml -t DES2205+0126 -s $RANDOM
+sbatch eastlake/resume.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM
 ```
 
 `resume-all.sh` -- resume or rerun all simulation pairs that do not have a metadetect catalog output
 ```
-bash eastlake/resume-all.sh -c configs/grid-bright/config.yaml
+bash eastlake/resume-all.sh -c configs/grid-bright.yaml
 ```
 
 `resubmit-all.sh` -- resubmit all simulation pairs that failed to run
 ```
-bash eastlake/resubmit-all.sh -c configs/grid-bright/config.yaml -f tiles-y6.txt -s $RANDOM
+bash eastlake/resubmit-all.sh -c configs/grid-bright.yaml -f tiles-y6.txt -s $RANDOM
 ```
 
 ## analysis
@@ -57,5 +57,5 @@ python analysis/compute_bias.py $SCRATCH/y6-image-sims/grid-bright --seed $RANDO
 
 `run.sh` -- compute multiplicative and additive shear bias for output sims (via sbatch)
 ```
-sbatch analysis/run.sh -c configs/grid-bright/config.yaml -s $RANDOM
+sbatch analysis/run.sh -c configs/grid-bright.yaml -s $RANDOM
 ```

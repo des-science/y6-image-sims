@@ -12,7 +12,8 @@ if [[ ! $config ]]; then
 fi
 echo "config:	$config"
 
-run=$(basename $(dirname $config))
+# run=$(basename $(dirname $config))
+run=$(basename $config .yaml)
 for tile in $(ls $SCRATCH/y6-image-sims/$run)
 do
 	for seed in $(ls $SCRATCH/y6-image-sims/$run/$tile)

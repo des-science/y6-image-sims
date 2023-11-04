@@ -33,7 +33,8 @@ if [[ ! $njobs ]]; then
 fi
 echo "njobs:	$njobs"
 
-run=$(basename $(dirname $config))
+# run=$(basename $(dirname $config))
+run=$(basename $config .yaml)
 submitted="${filename%.*}-${run}-submitted.txt"
 
 for tile in $(ls $SCRATCH/y6-image-sims/$run | comm -23 <(sort $submitted) - | shuf | head -n $njobs)

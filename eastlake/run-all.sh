@@ -33,8 +33,10 @@ if [[ ! $njobs ]]; then
 fi
 echo "njobs:	$njobs"
 
-submitted="${filename%.*}-$(basename $(dirname $config))-submitted.txt"
+run=$(basename $config .yaml)
+submitted="${filename%.*}-${run}-submitted.txt"
 touch $submitted
+
 for tile in $(comm -23 <(sort $filename) <(sort $submitted) | shuf | head -n $njobs)
 do
 	seed=$RANDOM

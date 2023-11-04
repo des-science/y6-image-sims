@@ -32,7 +32,8 @@ echo "seed:	$seed"
 # Source the setup script from the script directory
 source setup.sh
 
-run=$(basename $(dirname $config))
+# run=$(basename $(dirname $config))
+run=$(basename $config .yaml)
 
 python analysis/compute-bias.py \
 	$SCRATCH/y6-image-sims/$run \
