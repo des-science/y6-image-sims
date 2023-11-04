@@ -10,6 +10,7 @@
 |	grid-bright-piff	|	-9.042e-04	|	6.831e-04	|		|		|	98	|
 |	grid-bright-piff-nomask	|	-2.146e-04	|	1.384e-04	|		|		|	98	|
 |	grid-faint	|	2.658e-04	|	1.742e-03	|	9.420e-06	|	5.215e-05	|	1000	|
+|	rand-bright	|		|		|		|		|		|
 |	rand	|		|		|		|		|		|
 |	rand-faint	|		|		|		|		|		|
 
@@ -50,6 +51,13 @@
 
 - faint exponential galaxies
 - grid distribution
+- Gaussian PSF
+
+### rand-bright
+
+- bright exponential galaxies
+- bright exponential stars
+- random distribution (with shearing scene)
 - Gaussian PSF
 
 ### rand
