@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source meds/setup.sh
+source setup.sh
 
 export DES_RSYNC_PASSFILE=/global/cfs/cdirs/des/y6-image-sims/rsync_pass-smau.txt
 export DESREMOTE_RSYNC=smau@desar2.cosmology.illinois.edu::ALLDESFiles/new_archive/desarchive/

@@ -27,8 +27,7 @@ fi
 echo "seed:	$seed"
 
 # Source the setup script from the script directory
-source eastlake/setup.sh
-# source $(realpath $(dirname "$0")/setup.sh)
+source setup.sh
 
 # Define run directory
 run=$(basename $(dirname $config))

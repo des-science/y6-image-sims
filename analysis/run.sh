@@ -30,7 +30,7 @@ fi
 echo "seed:	$seed"
 
 # Source the setup script from the script directory
-source eastlake/setup.sh
+source setup.sh
 
 run=$(basename $(dirname $config))
 

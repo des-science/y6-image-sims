@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source tiles/setup.sh
+source setup.sh
 
 while getopts 'f:' opt; do
 	case $opt in
