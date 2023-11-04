@@ -39,7 +39,15 @@ image:
   border: 15
 
   # The number of objects across the full focal plane.
-  nobjects: 90000
+  # nobjects: 90000
+  nobjects:
+    type: MixedNObjects
+    ngalaxies:
+      type: RandomPoisson
+      mean: 170000
+    nstars:
+      type: RandomPoisson
+      mean: 17000
 
   #could read this from the image headers, but let's set them explicitly for now
   xsize: 2048
