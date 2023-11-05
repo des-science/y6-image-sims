@@ -126,12 +126,18 @@ gal:
           ellip: "@gal.items.0.ellip"
           flux: "$1-@gal.items.0.flux"
 
-    flux: "10**(0.4*(mag_zp-20))"
+    flux:
+        type: Eval
+        str: "10**(0.4*(mag_zp-20))"
+        fmag: { type: catalog_sampler_value, col: *gal_mag_col }
 
 star:
     type: Gaussian  # Basically a delta function.
     sigma: 1.e-6
-    flux: "10**( 0.4 * (mag_zp - 10))"
+    flux:
+        type: Eval
+        str: "10**( 0.4 * (mag_zp - 10))"
+        fmag: { type: DESStarValue, col: *star_mag_col }
 
 stamp:
   type: MixedScene
