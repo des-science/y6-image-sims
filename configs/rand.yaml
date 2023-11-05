@@ -128,10 +128,7 @@ gal:
 
     flux:
         type: Eval
-        #Input catalog has mag
-        #convert to flux via flux = 10**(0.4*(mag_zp-mag))
-        # str: "10**(0.4*(mag_zp-mag))"
-        str: "10**(0.4*(mag_zp-20))"
+        str: "10**(0.4*(mag_zp-mag))"
         fmag: { type: catalog_sampler_value, col: *gal_mag_col }
 
 star:
@@ -139,8 +136,7 @@ star:
     sigma: 1.e-6
     flux:
         type: Eval
-        # str: "10**( 0.4 * (mag_zp - mag))"
-        str: "10**( 0.4 * (mag_zp - 10))"
+        str: "10**( 0.4 * (mag_zp - mag))"
         fmag: { type: DESStarValue, col: *star_mag_col }
 
 stamp:
@@ -154,6 +150,7 @@ stamp:
     ii: "$obj_num-start_obj_num"
   }
   draw_method: auto
+  shear_scene: True
   shear:
     type: G1G2
     g1: 0.00
