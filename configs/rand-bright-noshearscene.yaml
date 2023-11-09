@@ -58,10 +58,9 @@ input:
       mask_flags: [0,] #apply mask flags
       bdf_hlr: [0., 5.]
   desstar:
-    # file_name: /dvs_ro/cfs/cdirs/des/atong/y6kp-shear/starsim/catalogs/merged.fits
     file_name:
         type: FormattedStr
-        format: /dvs_ro/cfs/cdirs/des/atong/y6kp-shear/starsim/catalogs/lsst_combined/%s.fits
+        format: /dvs_ro/cfs/projectdirs/des/atong/y6kp-shear/starsim/catalogs/merged_y6/%s.fits
         items:
         - "@output.tilename"
     mag_i_max: 25.
