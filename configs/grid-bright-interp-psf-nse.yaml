@@ -5,13 +5,10 @@ modules:
   - numpy
 
 pipeline:
-  # steps: [galsim_montara, true_detection, pizza_cutter, metadetect, delete_images, delete_sources, delete_meds]
-  steps: [galsim_montara, true_detection, pizza_cutter, metadetect, delete_images, delete_sources]
+  # steps: [galsim_montara, pizza_cutter, metadetect, delete_images, delete_sources, delete_meds]
+  steps: [galsim_montara, pizza_cutter, metadetect, delete_images, delete_sources]
 
 galsim_montara: {}
-
-true_detection:
-  box_size: 48
 
 delete_images:
   delete_coadd: True
