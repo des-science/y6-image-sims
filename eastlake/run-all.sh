@@ -40,8 +40,12 @@ touch $submitted
 for tile in $(comm -23 <(sort $filename) <(sort $submitted) | shuf | head -n $njobs)
 do
 	seed=$RANDOM
-	echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
-	sbatch eastlake/run.sh -c $config -t $tile -s $seed
+	# echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
+	# sbatch eastlake/run.sh -c $config -t $tile -s $seed
+	echo "sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g plus"
+	sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g plus
+	echo "sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g minus"
+	sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g minus
 	echo $tile >> $submitted
 done
 echo "finished submitting jobs"

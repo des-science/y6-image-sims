@@ -40,6 +40,10 @@ submitted="${filename%.*}-${run}-submitted.txt"
 for tile in $(ls $SCRATCH/y6-image-sims/$run | comm -23 <(sort $submitted) - | shuf | head -n $njobs)
 do
 	seed=$RANDOM
-	echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
-	sbatch eastlake/run.sh -c $config -t $tile -s $seed
+	# echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
+	# sbatch eastlake/run.sh -c $config -t $tile -s $seed
+	echo "sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g plus"
+	sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g plus
+	echo "sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g minus"
+	sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g minus
 done
