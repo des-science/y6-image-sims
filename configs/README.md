@@ -71,16 +71,9 @@
 - random distribution (with shearing scene)
 - Gaussian PSF
 
-### rand
-
-- cosmos galaxies
-- random distribution
-- gaia & sim stars [TODO]
-- Gaussian PSF
-
 ### rand-piff
 
 - cosmos galaxies
-- random distribution
-- gaia & sim stars [TODO]
+- random distribution (with shearing scene)
+- gaia & sim stars
 - Piff PSF
