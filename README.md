@@ -28,6 +28,11 @@ bash eastlake/test.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM
 sbatch eastlake/run.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM
 ```
 
+`run-single-shear.sh` -- run a full simulation for either shear
+```
+sbatch eastlake/run-single-shear.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM -g plus
+```
+
 `run-all.sh` -- run a full simulation pair for all tiles
 ```
 bash eastlake/run-all.sh -c configs/grid-bright.yaml -f tiles-y6.txt -s $RANDOM
@@ -36,6 +41,11 @@ bash eastlake/run-all.sh -c configs/grid-bright.yaml -f tiles-y6.txt -s $RANDOM
 `resume.sh` -- resume a simulation pair with a checkpoint (i.e., from a failed job)
 ```
 sbatch eastlake/resume.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM
+```
+
+`resume-single-shear.sh` -- resume a simulation for a single shear with a checkpoint (i.e., from a failed job)
+```
+sbatch eastlake/resume-single-shear.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM -g plus
 ```
 
 `resume-all.sh` -- resume or rerun all simulation pairs that do not have a metadetect catalog output
