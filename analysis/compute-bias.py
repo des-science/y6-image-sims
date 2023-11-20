@@ -122,7 +122,9 @@ def main():
 
     pairs = {}
 
-    tile_dirs = Path(args.imsim_dir).glob("*")
+    imsim_path = Path(args.imsim_dir)
+    config_name = imsim_path.name
+    tile_dirs = imsim_path.glob("*")
 
     for tile_dir in tile_dirs:
         tile = tile_dir.stem
@@ -150,8 +152,10 @@ def main():
                 continue
 
             pairs[f"{tile}_{run}"] = (fname_plus, fname_minus)
+            break
 
-    print(len(pairs))
+    # print(len(pairs))
+    ntiles = len(pairs)
 
     jobs = [
         joblib.delayed(grid_file_pair)(fplus=pfile, fminus=mfile, ngrid=10)
@@ -175,15 +179,18 @@ def main():
     bootstrap = np.array(bootstrap)
     m_std, c_std = np.std(bootstrap, axis=0)
 
-    print("\v")
-    print("m:	(%0.3e, %0.3e)" % (m_mean - m_std * 3, m_mean + m_std * 3))
-    print("m mean:	%0.3e" % m_mean)
-    print("m std:	%0.3e [3 sigma]" % (m_std * 3))
-    print("\v")
-    print("c:	(%0.3e, %0.3e)" % (c_mean - c_std * 3, c_mean + c_std * 3))
-    print("c mean:	%0.3e" % c_mean)
-    print("c std:	%0.3e [3 sigma]" % (c_std * 3))
-    print("\v")
+    # print("\v")
+    # print("m:	(%0.3e, %0.3e)" % (m_mean - m_std * 3, m_mean + m_std * 3))
+    # print("m mean:	%0.3e" % m_mean)
+    # print("m std:	%0.3e [3 sigma]" % (m_std * 3))
+    # print("\v")
+    # print("c:	(%0.3e, %0.3e)" % (c_mean - c_std * 3, c_mean + c_std * 3))
+    # print("c mean:	%0.3e" % c_mean)
+    # print("c std:	%0.3e [3 sigma]" % (c_std * 3))
+    # print("\v")
+    print(f"|	config	|	m mean	|	m std (3σ)	|	c mean	|	c std (3σ)	|	# tiles	|")
+    print(f"|---|---|---|---|---|---|")
+    print(f"|	{config_name}	|	{m_mean:0.3e}	|	{m_std:0.3e}	|	{c_mean:0.3e}	|	{c_std:0.3e}	|	{ntiles}	|")
 
 if __name__ == "__main__":
     main()
