@@ -98,8 +98,8 @@ image:
           # max: "$coadd_ra_max_deg - 200 * 0.263 / 3600 / math.cos((@image.world_pos.dec).rad)"
           # min: "$coadd_ra_min_deg + 300 * 0.263 / 3600 / math.cos(math.radians(coadd_dec_min_deg))"
           # max: "$coadd_ra_max_deg - 300 * 0.263 / 3600 / math.cos(math.radians(coadd_dec_min_deg))"
-          min: "$(@coadd_wcs).toWorld(galsim.PositionD(200, 0)).ra.deg"
-          max: "$(@coadd_wcs).toWorld(galsim.PositionD(9800, 0)).ra.deg"
+          min: "$(@coadd_wcs).toWorld(galsim.PositionD(250, 0)).ra.deg"
+          max: "$(@coadd_wcs).toWorld(galsim.PositionD(9750, 0)).ra.deg"
         fra_star: { type: DESStarValue, col: "ra" }
     dec:
       type: Degrees
@@ -111,8 +111,8 @@ image:
           function: "math.cos(x)"  # Uniform on the sky means P(delta) ~ cos(delta)
           # x_min: "$math.radians(coadd_dec_min_deg + 200 * 0.263 / 3600)"
           # x_max: "$math.radians(coadd_dec_max_deg - 200 * 0.263 / 3600)"
-          x_min: "$(@coadd_wcs).toWorld(galsim.PositionD(0, 200)).dec.rad"
-          x_max: "$(@coadd_wcs).toWorld(galsim.PositionD(0, 9800)).dec.rad"
+          x_min: "$(@coadd_wcs).toWorld(galsim.PositionD(0, 250)).dec.rad"
+          x_max: "$(@coadd_wcs).toWorld(galsim.PositionD(0, 9750)).dec.rad"
         fdec_star: { type: DESStarValue, col: "dec" }
 
 psf:
@@ -138,7 +138,7 @@ gal:
 
     flux:
         type: Eval
-        str: "10**(0.4*(mag_zp-20))"
+        str: "10**(0.4*(mag_zp-18))"
         fmag: { type: catalog_sampler_value, col: *gal_mag_col }
 
 star:
@@ -146,7 +146,7 @@ star:
     sigma: 1.e-6
     flux:
         type: Eval
-        str: "10**( 0.4 * (mag_zp - 10))"
+        str: "10**( 0.4 * (mag_zp - mag))"
         fmag: { type: DESStarValue, col: *star_mag_col }
 
 stamp:
