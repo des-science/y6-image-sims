@@ -119,27 +119,10 @@ psf:
   type: Gaussian
   fwhm: 0.9
 
-#No knots
 gal:
-    type: Sum
-    items:
-        - type: Exponential
-          half_light_radius: { type: catalog_sampler_value, col: bdf_hlr }
-          ellip:
-              type: GBeta
-              g: { type: Eval, str: "np.sqrt(g1**2 + g2**2)", fg1: { type: catalog_sampler_value, col: bdf_g1 }, fg2: { type: catalog_sampler_value, col: bdf_g2 } }
-              beta: { type: Random }
-          flux: { type: Eval, str: "1-fracdev", ffracdev: { type: catalog_sampler_value, col: bdf_fracdev } }
-
-        - type: DeVaucouleurs
-          half_light_radius: '@gal.items.0.half_light_radius'
-          ellip: "@gal.items.0.ellip"
-          flux: "$1-@gal.items.0.flux"
-
-    flux:
-        type: Eval
-        str: "10**(0.4*(mag_zp-18))"
-        fmag: { type: catalog_sampler_value, col: *gal_mag_col }
+  type: Exponential
+  half_light_radius: 0.5
+  flux: "$10**(0.4*(mag_zp-18.0))"
 
 star:
     type: Gaussian  # Basically a delta function.

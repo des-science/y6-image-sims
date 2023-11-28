@@ -15,7 +15,7 @@
 |	grid-bright-piff	|	-9.042e-04	|	6.831e-04	|		|		|	98	|
 |	grid-bright-piff-nomask	|	-2.146e-04	|	1.384e-04	|		|		|	98	|
 |	grid-faint	|	2.658e-04	|	1.742e-03	|	9.420e-06	|	5.215e-05	|	1000	|
-|	rand-bright	|		|		|		|		|		|
+|	rand-bright	|	2.967e-04	|	5.256e-04	|	-9.848e-06	|	2.438e-05	|	97	|
 |	rand	|		|		|		|		|		|
 |	rand-faint	|		|		|		|		|		|
 
