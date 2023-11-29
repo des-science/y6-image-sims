@@ -128,6 +128,7 @@ def main():
 
     for tile_dir in tile_dirs:
         tile = tile_dir.stem
+        pairs[tile] = {}
         # FIXME one tile test for now..
         # if tile != "DES0050-2249":
         #     continue
@@ -146,21 +147,18 @@ def main():
                 os.path.exists(fname_plus)
                 and os.path.exists(fname_minus)
             ):
-                print(f"tile: {tile}	seed: {run}")
-                print(f"	plus: {os.path.exists(fname_plus)}")
-                print(f"	minus: {os.path.exists(fname_minus)}")
                 continue
 
-            pairs[f"{tile}_{run}"] = (fname_plus, fname_minus)
-            break
+            pairs[tile][run] = (fname_plus, fname_minus)
 
-    # print(len(pairs))
-    ntiles = len(pairs)
+    ntiles = len([p for p in pairs.values() if p])
 
     jobs = [
         joblib.delayed(grid_file_pair)(fplus=pfile, fminus=mfile, ngrid=10)
-        for pfile, mfile in pairs.values()
+        for seed in pairs.values()
+        for pfile, mfile in seed.values()
     ]
+    print(f"Processing {len(jobs)} paired simulations ({ntiles} tiles)")
 
     with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
         d = par(jobs)
@@ -171,6 +169,8 @@ def main():
     rng = np.random.RandomState(seed=args.seed)
 
     m_mean, c_mean = compute_shear_pair(d)
+
+    print(f"Bootstrapping with {ns} resamples")
     bootstrap = []
     for i in tqdm.trange(ns, ncols=80):
         rind = rng.choice(d.shape[0], size=d.shape[0], replace=True)
@@ -188,9 +188,9 @@ def main():
     # print("c mean:	%0.3e" % c_mean)
     # print("c std:	%0.3e [3 sigma]" % (c_std * 3))
     # print("\v")
-    print(f"|	config	|	m mean	|	m std (3σ)	|	c mean	|	c std (3σ)	|	# tiles	|")
+    print(f"| configuration	| m mean	| m std (3σ)	| c mean	| c std (3σ)	| # tiles	|")
     print(f"|---|---|---|---|---|---|")
-    print(f"|	{config_name}	|	{m_mean:0.3e}	|	{m_std:0.3e}	|	{c_mean:0.3e}	|	{c_std:0.3e}	|	{ntiles}	|")
+    print(f"| {config_name}	| {m_mean:0.3e}	| {m_std:0.3e}	| {c_mean:0.3e}	| {c_std:0.3e}	| {ntiles}	|")
 
 if __name__ == "__main__":
     main()
