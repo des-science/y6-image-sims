@@ -46,4 +46,5 @@ run-eastlake-sim \
 	$output/plus \
 	stamp.shear.g1=0.02 stamp.shear.g2=0.00 output.tilename=$tile \
 	pizza_cutter.n_jobs=8 metadetect.n_jobs=8 output.nproc=1 \
-	output.n_se_test=1 output.bands="r"
+	output.n_se_test=12 output.bands="r" \
+	pipeline.steps="[galsim_montara, pizza_cutter]"
