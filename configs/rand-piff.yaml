@@ -73,10 +73,9 @@ image:
   # nobjects: 90000
   nobjects:
     type: MixedNObjects
-    ngalaxies: 90000
-    # ngalaxies:
-    #   type: RandomPoisson
-    #   mean: 170000
+    ngalaxies:
+      type: RandomPoisson
+      mean: 170000
     use_all_stars: True
 
   #could read this from the image headers, but let's set them explicitly for now
