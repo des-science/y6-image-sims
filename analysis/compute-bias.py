@@ -190,7 +190,7 @@ def main():
     # print("\v")
     print(f"| configuration	| m mean	| m std (3σ)	| c mean	| c std (3σ)	| # tiles	|")
     print(f"|---|---|---|---|---|---|")
-    print(f"| {config_name}	| {m_mean:0.3e}	| {m_std:0.3e}	| {c_mean:0.3e}	| {c_std:0.3e}	| {ntiles}	|")
+    print(f"| {config_name}	| {m_mean:0.3e}	| {m_std*3:0.3e}	| {c_mean:0.3e}	| {c_std*3:0.3e}	| {ntiles}	|")
 
 if __name__ == "__main__":
     main()
