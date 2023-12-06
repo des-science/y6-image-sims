@@ -93,8 +93,8 @@ image:
         # fra_gal: { type: Random, min: "$ra_min_deg", max: "$ra_max_deg" }
         fra_gal:
           type: Random
-          min: "$(@coadd_wcs).toWorld(galsim.PositionD(200, 0)).ra.deg"
-          max: "$(@coadd_wcs).toWorld(galsim.PositionD(9800, 0)).ra.deg"
+          min: "$(@coadd_wcs).toWorld(galsim.PositionD(250, 0)).ra.deg"
+          max: "$(@coadd_wcs).toWorld(galsim.PositionD(9750, 0)).ra.deg"
         fra_star: { type: DESStarValue, col: "ra" }
     dec:
       type: Degrees
@@ -106,8 +106,8 @@ image:
           function: "math.cos(x)"  # Uniform on the sky means P(delta) ~ cos(delta)
           # x_min: "$math.radians(dec_min_deg)"
           # x_max: "$math.radians(dec_max_deg)"
-          x_min: "$(@coadd_wcs).toWorld(galsim.PositionD(0, 200)).dec.rad"
-          x_max: "$(@coadd_wcs).toWorld(galsim.PositionD(0, 9800)).dec.rad"
+          x_min: "$(@coadd_wcs).toWorld(galsim.PositionD(0, 250)).dec.rad"
+          x_max: "$(@coadd_wcs).toWorld(galsim.PositionD(0, 9750)).dec.rad"
         fdec_star: { type: DESStarValue, col: "dec" }
 
 psf:
