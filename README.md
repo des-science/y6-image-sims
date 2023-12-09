@@ -67,5 +67,8 @@ python analysis/compute_bias.py $SCRATCH/y6-image-sims/grid-bright --seed $RANDO
 
 `run.sh` -- compute multiplicative and additive shear bias for output sims (via sbatch)
 ```
-sbatch analysis/run.sh -c configs/grid-bright.yaml -s $RANDOM
+bash analysis/run.sh -c configs/grid-bright.yaml -s $RANDOM -n 8
+```
+```
+sbatch analysis/run.sh -c configs/grid-bright.yaml -s $RANDOM -n 128
 ```
