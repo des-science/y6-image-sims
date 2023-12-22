@@ -96,10 +96,8 @@ output:
   nproc: 128
 
   #Save weight and badpix extensions too
-  badpixfromfits:
+  badpix:
     hdu: 1
-    mask_hdu: 2
-    mask_file: "$orig_image_path"
   weight:
     hdu: 2
 
