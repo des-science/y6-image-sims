@@ -10,10 +10,11 @@
 #SBATCH --cpus-per-task=256
 #SBATCH --mem=0
 
-while getopts 'c:s:n:' opt; do
+while getopts 'c:s:m:n:' opt; do
 	case $opt in
 		(c) config=$OPTARG;;
 		(s) seed=$OPTARG;;
+		(m) mfrac=$OPTARG;;
 		(n) njobs=$OPTARG;;
 	esac
 done
@@ -30,6 +31,11 @@ if [[ ! $seed ]]; then
 fi
 echo "seed:	$seed"
 
+if [[ ! $mfrac ]]; then
+	mfrac=0.1
+fi
+echo "mfrac:	$mfrac"
+
 if [[ ! $njobs ]]; then
 	njobs=8
 fi
@@ -44,4 +50,5 @@ run=$(basename $config .yaml)
 python analysis/compute-bias.py \
 	$SCRATCH/y6-image-sims/$run \
 	--seed $seed \
+	--mfrac $mfrac \
 	--n_jobs $njobs

@@ -10,7 +10,7 @@ import fitsio
 import des_y6utils
 
 
-def grid_file(*, fname, ngrid):
+def grid_file(*, fname, ngrid, mfrac=0.1):
     d = fitsio.read(fname)
 
     dgrid = 1e4/ngrid
@@ -33,7 +33,7 @@ def grid_file(*, fname, ngrid):
         & (d["gauss_s2n"] > 10)
     )
     # msk = des_y6utils.mdet.make_mdet_cuts(d, "5")
-    msk &= d["mfrac"] < 0.1
+    msk &= d["mfrac"] < mfrac
 
     vals = []
 
@@ -57,9 +57,9 @@ def grid_file(*, fname, ngrid):
     return np.array(vals, dtype=[("g1", "f8"), ("ng1", "f8"), ("g1p", "f8"), ("ng1p", "f8"), ("g1m", "f8"), ("ng1m", "f8"), ("grid_ind", "i4")])
 
 
-def grid_file_pair(*, fplus, fminus, ngrid):
-    dp = grid_file(fname=fplus, ngrid=ngrid)
-    dm = grid_file(fname=fminus, ngrid=ngrid)
+def grid_file_pair(*, fplus, fminus, ngrid, mfrac=0.1):
+    dp = grid_file(fname=fplus, ngrid=ngrid, mfrac=mfrac)
+    dm = grid_file(fname=fminus, ngrid=ngrid, mfrac=mfrac)
 
     assert np.all(dp["grid_ind"] == dm["grid_ind"])
 
@@ -113,6 +113,13 @@ def get_args():
         default=8,
         help="Number of joblib jobs [int]",
     )
+    parser.add_argument(
+        "--mfrac",
+        type=float,
+        required=False,
+        default=0.1,
+        help="mfrac cut [float]",
+    )
     return parser.parse_args()
 
 
@@ -153,8 +160,9 @@ def main():
 
     ntiles = len([p for p in pairs.values() if p])
 
+    mfrac = args.mfrac
     jobs = [
-        joblib.delayed(grid_file_pair)(fplus=pfile, fminus=mfile, ngrid=10)
+        joblib.delayed(grid_file_pair)(fplus=pfile, fminus=mfile, ngrid=10, mfrac=mfrac)
         for seed in pairs.values()
         for pfile, mfile in seed.values()
     ]
@@ -188,9 +196,9 @@ def main():
     # print("c mean:	%0.3e" % c_mean)
     # print("c std:	%0.3e [3 sigma]" % (c_std * 3))
     # print("\v")
-    print(f"| configuration	| m mean	| m std (3σ)	| c mean	| c std (3σ)	| # tiles	|")
+    print(f"| configuration | m mean | m std (3σ) | c mean | c std (3σ) | # tiles | mfrac |")
     print(f"|---|---|---|---|---|---|")
-    print(f"| {config_name}	| {m_mean:0.3e}	| {m_std*3:0.3e}	| {c_mean:0.3e}	| {c_std*3:0.3e}	| {ntiles}	|")
+    print(f"| {config_name} | {m_mean:0.3e} | {m_std*3:0.3e} | {c_mean:0.3e} | {c_std*3:0.3e} | {ntiles} | {mfrac} |")
 
 if __name__ == "__main__":
     main()
