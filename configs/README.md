@@ -2,22 +2,25 @@
 
 ## results
 
-|	config	|	m mean	|	m std (3σ)	|	c mean	|	c std (3σ)	|	# tiles	|
+| config | m mean | m std (3σ) | c mean | c std (3σ) | # tiles | mfrac |
 |---|---|---|---|---|---|
-|	grid-bright	|	8.101e-04	|	6.405e-04	|		|		|	98	|
-|	grid-bright-pixel	|	4.685e-04	|	7.454e-04	|		|		|	84	|
-|	grid-bright-interp	|	-1.614e-04	|	1.789e-04	|	-2.546e-06	|	4.085e-06	|	300	|
-|	grid-bright-interp-psf-nse (snr: 5000)	|	-2.489e-04	|	3.043e-04	|	-1.579e-05	|	7.583e-06	|	100	|
-|	grid-bright-interp-psf-nse (snr: 400)	|	-2.026e-04	|	2.053e-04	|	-5.774e-05	|	1.853e-05	|	200	|
-|	grid-bright-interp-psf-nse (snr: 200)	|	-1.976e-04	|	2.311e-04	|	2.681e-05	|	3.526e-05	|	200	|
-|	grid-bright-interp-psf-nse (snr: 150)	|	-1.660e-04	|	2.692e-04	|	1.309e-05	|	4.195e-05	|	300	|
-|	grid-bright-interp-psf-nse (snr: 100)	|	2.001e-02	|	2.729e-03	|	8.470e-04	|	4.101e-04	|	300	|
-|	grid-bright-piff	|	-9.042e-04	|	6.831e-04	|		|		|	98	|
-|	grid-bright-piff-nomask	|	-2.146e-04	|	1.384e-04	|		|		|	98	|
-|	grid-faint	|	2.658e-04	|	1.742e-03	|	9.420e-06	|	5.215e-05	|	1000	|
-| rand-bright	| -4.370e-04	| 6.369e-04	| -8.816e-06	| 2.734e-05	| 600	|
-|	rand	|		|		|		|		|		|
-|	rand-faint	|		|		|		|		|		|
+| grid-bright | -2.593e-04 | 1.467e-04 | -5.426e-08 | 3.413e-06 | 398 | 0.1 |
+| grid-bright | 9.062e-05 | 6.291e-05 | -5.879e-07 | 1.537e-06 | 400 | 0.03 |
+| grid-bright | 2.560e-04 | 2.492e-05 | -3.936e-07 | 8.238e-07 | 400 | 0.01 |
+| grid-bright-nomask | 3.246e-04 | 2.283e-05 | 5.672e-07 | 1.072e-06 | 196 | 0.1 |
+| grid-bright-pixel | 4.685e-04 | 7.454e-04 |  |  | 84 | 0.1 |
+| grid-bright-interp | -1.614e-04 | 1.789e-04 | -2.546e-06 | 4.085e-06 | 300 | 0.1 |
+| grid-bright-interp-psf-nse (snr: 5000) | -2.489e-04 | 3.043e-04 | -1.579e-05 | 7.583e-06 | 100 | 0.1 |
+| grid-bright-interp-psf-nse (snr: 400) | -2.026e-04 | 2.053e-04 | -5.774e-05 | 1.853e-05 | 200 | 0.1 |
+| grid-bright-interp-psf-nse (snr: 200) | -1.976e-04 | 2.311e-04 | 2.681e-05 | 3.526e-05 | 200 | 0.1 |
+| grid-bright-interp-psf-nse (snr: 150) | -1.660e-04 | 2.692e-04 | 1.309e-05 | 4.195e-05 | 300 | 0.1 |
+| grid-bright-interp-psf-nse (snr: 100) | 2.001e-02 | 2.729e-03 | 8.470e-04 | 4.101e-04 | 300 | 0.1 |
+| grid-bright-piff | -9.042e-04 | 6.831e-04 |  |  | 98 | 0.1 |
+| grid-bright-piff-nomask | -2.146e-04 | 1.384e-04 |  |  | 98 | 0.1 |
+| grid-faint | 2.658e-04 | 1.742e-03 | 9.420e-06 | 5.215e-05 | 1000 | 0.1 |
+| rand-bright | -4.370e-04 | 6.369e-04 | -8.816e-06 | 2.734e-05 | 600 | 0.1 |
+| rand |  |  |  |  |  |
+| rand-faint |  |  |  |  |  |
 
 ## descriptions
 
