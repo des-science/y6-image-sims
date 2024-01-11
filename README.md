@@ -58,6 +58,11 @@ bash eastlake/resume-all.sh -c configs/grid-bright.yaml
 bash eastlake/resubmit-all.sh -c configs/grid-bright.yaml -f tiles-y6.txt -s $RANDOM
 ```
 
+`submit-array.sh` -- submit all tiles via job array
+```
+bash eastlake/submit-array.sh -c configs/grid-bright.yaml -f tiles-y6.txt -s $RANDOM
+```
+
 ## analysis
 
 `compute_bias.py` -- compute multiplicative and additive shear bias for output sims

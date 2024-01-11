@@ -31,4 +31,3 @@ njobs=$(wc -l < $filename)
 
 echo "sbatch --array=1-$njobs eastlake/array-task.sh -c $config -f $filename -s $seed"
 sbatch --array=1-$njobs eastlake/array-task.sh -c $config -f $filename -s $seed
-
