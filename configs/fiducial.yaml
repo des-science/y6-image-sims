@@ -102,12 +102,11 @@ image:
   border: 15
 
   # The number of objects across the full focal plane.
-  # nobjects: 90000
   nobjects:
     type: MixedNObjects
     ngalaxies:
       type: RandomPoisson
-      mean: "$170000 * (((@coadd_wcs).toWorld(galsim.PositionD(9750, 0)).ra.deg - (@coadd_wcs).toWorld(galsim.PositionD(250, 0)).ra.deg) * (math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 250)).dec.rad) - math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 9750)).dec.rad))) / (((@coadd_wcs).toWorld(galsim.PositionD(10000, 0)).ra.deg - (@coadd_wcs).toWorld(galsim.PositionD(0, 0)).ra.deg) * (math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 0)).dec.rad) - math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 10000)).dec.rad)))"
+      mean: "$170000 * (((@coadd_wcs).toWorld(galsim.PositionD(9750, 0)).ra.deg - (@coadd_wcs).toWorld(galsim.PositionD(250, 0)).ra.deg) * (math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 250)).dec.rad) - math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 9750)).dec.rad))) / ((ra_max_deg - ra_min_deg) * (math.cos(math.radians(dec_max_deg)) - math.cos(math.radians(dec_min_deg))))"
     use_all_stars: True
 
   #could read this from the image headers, but let's set them explicitly for now
@@ -144,8 +143,10 @@ image:
 psf:
   type: DES_Piff
   depixelize: false
-  gi_color: { type: Eval, str: "mag_g - mag_i", fmag_g: { type: catalog_sampler_value, col: mag_g_dered }, fmag_i: { type: catalog_sampler_value, col: mag_i_dered } }
-  iz_color: { type: Eval, str: "mag_i - mag_z", fmag_i: { type: catalog_sampler_value, col: mag_i_dered }, fmag_z: { type: catalog_sampler_value, col: mag_z_dered } }
+  gi_color: null
+  iz_color: null
+  # gi_color: { type: Eval, str: "mag_g - mag_i", fmag_g: { type: catalog_sampler_value, col: mag_g_dered }, fmag_i: { type: catalog_sampler_value, col: mag_i_dered } }
+  # iz_color: { type: Eval, str: "mag_i - mag_z", fmag_i: { type: catalog_sampler_value, col: mag_i_dered }, fmag_z: { type: catalog_sampler_value, col: mag_z_dered } }
 
 #No knots
 gal:
