@@ -14,18 +14,14 @@ pipeline:
     - pizza_cutter
     - metadetect
     - fitvd
-    # - delete_images
-    # - delete_sources
+    - delete_images
+    - delete_sources
 
 fitvd:
-  # conda_prefix: "/pscratch/sd/s/smau/conda/des-y6-fitvd-scratch"
   conda_prefix: "/global/common/software/des/mambaforge/envs/des-y6-fitvd"
   n_jobs: 128
   det_band: "r"
   bands: ["g", "r", "i", "z"]
-  # shredx_config: "/global/homes/s/smau/projects/des/y6-image-sims/fitvd/Y6A1_v1_shredx-Y6A1v1.yaml"
-  # fitvd_config: "/global/homes/s/smau/projects/des/y6-image-sims/fitvd/Y6A1_v1_fitvd-Y6A1v5.yaml"
-
 
 galsim_montara: {}
 
@@ -111,7 +107,7 @@ image:
     type: MixedNObjects
     ngalaxies:
       type: RandomPoisson
-      mean: 170000
+      mean: "$170000 * (((@coadd_wcs).toWorld(galsim.PositionD(9750, 0)).ra.deg - (@coadd_wcs).toWorld(galsim.PositionD(250, 0)).ra.deg) * (math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 250)).dec.rad) - math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 9750)).dec.rad))) / (((@coadd_wcs).toWorld(galsim.PositionD(10000, 0)).ra.deg - (@coadd_wcs).toWorld(galsim.PositionD(0, 0)).ra.deg) * (math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 0)).dec.rad) - math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 10000)).dec.rad)))"
     use_all_stars: True
 
   #could read this from the image headers, but let's set them explicitly for now
