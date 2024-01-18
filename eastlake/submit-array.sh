@@ -29,5 +29,14 @@ RANDOM=$seed
 
 njobs=$(wc -l < $filename)
 
+run=$(basename $config .yaml)
+submitted="${filename%.*}-${run}-submitted.txt"
+touch $submitted
+
 echo "sbatch --array=1-$njobs eastlake/array-task.sh -c $config -f $filename -s $seed"
 sbatch --array=1-$njobs eastlake/array-task.sh -c $config -f $filename -s $seed
+
+while read tile
+do
+    echo $tile >> $submitted
+done < $filename
