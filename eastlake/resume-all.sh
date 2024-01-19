@@ -12,12 +12,13 @@ if [[ ! $config ]]; then
 fi
 echo "config:	$config"
 
-# run=$(basename $(dirname $config))
 run=$(basename $config .yaml)
-for tile in $(ls $SCRATCH/y6-image-sims/$run)
+for tile_path in $SCRATCH/y6-image-sims/$run/*
 do
-	for seed in $(ls $SCRATCH/y6-image-sims/$run/$tile)
+    tile=$(basename $tile_path)
+	for seed_path in $SCRATCH/y6-image-sims/$run/$tile/*
 	do
+		seed=$(basename $seed_path)
 		pmdetcat=${SCRATCH}/y6-image-sims/${run}/${tile}/${seed}/plus/des-pizza-slices-y6/${tile}/metadetect/${tile}_metadetect-config_mdetcat_part0000.fits
 		mmdetcat=${SCRATCH}/y6-image-sims/${run}/${tile}/${seed}/minus/des-pizza-slices-y6/${tile}/metadetect/${tile}_metadetect-config_mdetcat_part0000.fits
 		# if [[ (! -f $pmdetcat) || (! -f $mmdetcat) ]]; then
