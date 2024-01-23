@@ -21,15 +21,15 @@
 | grid-bright-shear | -2.179e-04 | 1.756e-04 | -1.144e-06 | 3.160e-06 | 400 | 0.1 |
 | grid-bright-shear | 1.805e-04 | 4.367e-05 | -7.719e-07 | 9.682e-07 | 400 | 0.02 |
 | grid-bright-nomask | 3.246e-04 | 2.283e-05 | 5.672e-07 | 1.072e-06 | 196 | 0.1 |
-| grid-bright-pixel | 4.685e-04 | 7.454e-04 |  |  | 84 | 0.1 |
+| grid-bright-pixel | 5.715e-05 | 3.310e-04 | -3.774e-07 | 6.972e-06 | 98 | 0.1 |
 | grid-bright-interp | -1.614e-04 | 1.789e-04 | -2.546e-06 | 4.085e-06 | 300 | 0.1 |
 | grid-bright-interp-psf-nse (snr: 5000) | -2.489e-04 | 3.043e-04 | -1.579e-05 | 7.583e-06 | 100 | 0.1 |
 | grid-bright-interp-psf-nse (snr: 400) | -2.026e-04 | 2.053e-04 | -5.774e-05 | 1.853e-05 | 200 | 0.1 |
 | grid-bright-interp-psf-nse (snr: 200) | -1.976e-04 | 2.311e-04 | 2.681e-05 | 3.526e-05 | 200 | 0.1 |
 | grid-bright-interp-psf-nse (snr: 150) | -1.660e-04 | 2.692e-04 | 1.309e-05 | 4.195e-05 | 300 | 0.1 |
 | grid-bright-interp-psf-nse (snr: 100) | 2.001e-02 | 2.729e-03 | 8.470e-04 | 4.101e-04 | 300 | 0.1 |
-| grid-bright-piff | -9.042e-04 | 6.831e-04 |  |  | 98 | 0.1 |
-| grid-bright-piff-nomask | -2.146e-04 | 1.384e-04 |  |  | 98 | 0.1 |
+| grid-bright-piff | -3.074e-04 | 3.511e-04 | -3.331e-06 | 8.011e-06 | 98 | 0.1 |
+| grid-bright-piff-nomask | 3.238e-04 | 4.616e-05 | -6.013e-07 | 1.762e-06 | 98 | 0.1 |
 | grid-faint | 2.658e-04 | 1.742e-03 | 9.420e-06 | 5.215e-05 | 1000 | 0.1 |
 | rand-bright | -4.370e-04 | 6.369e-04 | -8.816e-06 | 2.734e-05 | 600 | 0.1 |
 | rand |  |  |  |  |  |  |
