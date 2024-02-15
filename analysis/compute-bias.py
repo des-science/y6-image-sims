@@ -37,19 +37,40 @@ def grid_file(*, fname, ngrid, mfrac=0.1):
         gmsk = msk & (_gind == gind)
         if np.any(gmsk):
             sval = []
-            for shear in ["noshear", "1p", "1m"]:
+            for shear in ["noshear", "1p", "1m", "2p", "2m"]:
                 sgmsk = gmsk & (d["mdet_step"] == shear)
                 if np.any(sgmsk):
                     sval.append(np.mean(d["gauss_g_1"][sgmsk]))
+                    sval.append(np.mean(d["gauss_g_2"][sgmsk]))
                     sval.append(np.sum(sgmsk))
                 else:
                     sval.append(np.nan)
                     sval.append(np.nan)
             vals.append(tuple(sval + [_gind]))
         else:
-            vals.append(tuple([np.nan] * 6 + [_gind]))
+            vals.append(tuple([np.nan] * 3 * 5 + [_gind]))
 
-    return np.array(vals, dtype=[("g1", "f8"), ("ng1", "f8"), ("g1p", "f8"), ("ng1p", "f8"), ("g1m", "f8"), ("ng1m", "f8"), ("grid_ind", "i4")])
+    return np.array(
+        vals,
+        dtype=[
+            ("g1", "f8"),
+            ("g2", "f8"),
+            ("n", "f8"),
+            ("g1_1p", "f8"),
+            ("g2_1p", "f8"),
+            ("n_1p", "f8"),
+            ("g1_1m", "f8"),
+            ("g2_1m", "f8"),
+            ("n_1m", "f8"),
+            ("g1_2p", "f8"),
+            ("g2_2p", "f8"),
+            ("n_2p", "f8"),
+            ("g1_2m", "f8"),
+            ("g2_2m", "f8"),
+            ("n_2m", "f8"),
+            ("grid_ind", "i4")
+        ]
+    )
 
 
 def grid_file_pair(*, fplus, fminus, ngrid, mfrac=0.1):
@@ -74,17 +95,27 @@ def grid_file_pair(*, fplus, fminus, ngrid, mfrac=0.1):
     return d
 
 def compute_shear_pair(d):
-    g1_p = np.nansum(d["g1_p"] * d["ng1_p"]) / np.nansum(d["ng1_p"])
-    g1p_p = np.nansum(d["g1p_p"] * d["ng1p_p"]) / np.nansum(d["ng1p_p"])
-    g1m_p = np.nansum(d["g1m_p"] * d["ng1m_p"]) / np.nansum(d["ng1m_p"])
+    g1_p = np.nansum(d["g1_p"] * d["n_p"]) / np.nansum(d["n_p"])
+    g1p_p = np.nansum(d["g1_1p_p"] * d["n_1p_p"]) / np.nansum(d["n_1p_p"])
+    g1m_p = np.nansum(d["g1_1m_p"] * d["n_1m_p"]) / np.nansum(d["n_1m_p"])
     R11_p = (g1p_p - g1m_p) / 0.02
 
-    g1_m = np.nansum(d["g1_m"] * d["ng1_m"]) / np.nansum(d["ng1_m"])
-    g1p_m = np.nansum(d["g1p_m"] * d["ng1p_m"]) / np.nansum(d["ng1p_m"])
-    g1m_m = np.nansum(d["g1m_m"] * d["ng1m_m"]) / np.nansum(d["ng1m_m"])
+    g1_m = np.nansum(d["g1_m"] * d["n_m"]) / np.nansum(d["n_m"])
+    g1p_m = np.nansum(d["g1_1p_m"] * d["n_1p_m"]) / np.nansum(d["n_1p_m"])
+    g1m_m = np.nansum(d["g1_1m_m"] * d["n_1m_m"]) / np.nansum(d["n_1m_m"])
     R11_m = (g1p_m - g1m_m) / 0.02
 
-    return (g1_p - g1_m) / (R11_p + R11_m) / 0.02 - 1., (g1_p + g1_m) / (R11_p + R11_m)
+    g2_p = np.nansum(d["g2_p"] * d["n_p"]) / np.nansum(d["n_p"])
+    g2p_p = np.nansum(d["g2_2p_p"] * d["n_2p_p"]) / np.nansum(d["n_2p_p"])
+    g2m_p = np.nansum(d["g2_2m_p"] * d["n_2m_p"]) / np.nansum(d["n_2m_p"])
+    R22_p = (g2p_p - g2m_p) / 0.02
+
+    g2_m = np.nansum(d["g2_m"] * d["n_m"]) / np.nansum(d["n_m"])
+    g2p_m = np.nansum(d["g2_2p_m"] * d["n_2p_m"]) / np.nansum(d["n_2p_m"])
+    g2m_m = np.nansum(d["g2_2m_m"] * d["n_2m_m"]) / np.nansum(d["n_2m_m"])
+    R22_m = (g2p_m - g2m_m) / 0.02
+
+    return (g1_p - g1_m) / (R11_p + R11_m) / 0.02 - 1., (g2_p + g2_m) / (R22_p + R22_m)
 
 
 def get_args():
