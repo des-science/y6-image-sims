@@ -46,6 +46,7 @@ def grid_file(*, fname, ngrid, mfrac=0.1):
                 else:
                     sval.append(np.nan)
                     sval.append(np.nan)
+                    sval.append(np.nan)
             vals.append(tuple(sval + [_gind]))
         else:
             vals.append(tuple([np.nan] * 3 * 5 + [_gind]))
