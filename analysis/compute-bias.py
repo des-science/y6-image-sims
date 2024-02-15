@@ -13,23 +13,18 @@ import des_y6utils
 def grid_file(*, fname, ngrid, mfrac=0.1):
     d = fitsio.read(fname)
 
-    dgrid = 1e4/ngrid
+    dgrid = 1e4 / ngrid
     xind = np.floor(d["x"] / dgrid)
     yind = np.floor(d["y"] / dgrid)
     gind = yind * ngrid + xind
 
     msk = (
         ((d["mask_flags"] & (~16)) == 0)
-        &
-        (d["gauss_flags"] == 0)
-        &
-        (d["gauss_psf_flags"] == 0)
-        &
-        (d["gauss_obj_flags"] == 0)
-        &
-        (d["psfrec_flags"] == 0)
-        &
-        (d["gauss_T_ratio"] > 0.5)
+        & (d["gauss_flags"] == 0)
+        & (d["gauss_psf_flags"] == 0)
+        & (d["gauss_obj_flags"] == 0)
+        & (d["psfrec_flags"] == 0)
+        & (d["gauss_T_ratio"] > 0.5)
         & (d["gauss_s2n"] > 10)
     )
     # msk = des_y6utils.mdet.make_mdet_cuts(d, "5")
