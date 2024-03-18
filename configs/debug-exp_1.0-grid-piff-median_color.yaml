@@ -1,0 +1,168 @@
+modules:
+  - galsim.des
+  - galsim_extra
+  - montara
+  - numpy
+
+pipeline:
+  steps:
+    - galsim_montara
+    # - coadd_nwgint
+    # - swarp
+    # - src_extractor
+    # - desdm_meds
+    - pizza_cutter
+    - metadetect
+    # - fitvd
+    - delete_images
+    - delete_sources
+
+fitvd:
+  conda_prefix: "/global/common/software/des/mambaforge/envs/des-y6-fitvd"
+  n_jobs: 128
+  det_band: "r"
+  bands: ["g", "r", "i", "z"]
+
+galsim_montara: {}
+
+delete_images:
+  delete_coadd: True
+  delete_se: True
+  delete_se_nwgint: True
+  delete_seg: True
+  save_tilenames: [DES0131-2458]
+
+delete_sources:
+  save_tilenames: [DES0131-2458]
+
+swarp:
+  coadd_bands: ["r", "i", "z"]
+
+src_extractor: {}
+
+coadd_nwgint:
+  n_jobs: 128
+  run_on_inputs: False
+
+desdm_meds:
+  n_jobs: 128
+  use_nwgint: False
+
+pizza_cutter:
+  n_jobs: 32  # more jobs leads to OOM errors
+  use_nwgint: False
+
+metadetect:
+  n_jobs: 128  # don't hyperthread
+
+input:
+  des_piff:
+    file_name: "$piff_path"
+
+image:
+  type: WideScattered
+  border: 15
+
+  # The number of objects across the full focal plane.
+  nobjects: 90000
+    # type: MixedNObjects
+    # ngalaxies:
+    #   90000
+    #   # type: RandomPoisson
+    #   # mean: "$170000 * (((@coadd_wcs).toWorld(galsim.PositionD(9750, 0)).ra.deg - (@coadd_wcs).toWorld(galsim.PositionD(250, 0)).ra.deg) * (math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 250)).dec.rad) - math.cos((@coadd_wcs).toWorld(galsim.PositionD(0, 9750)).dec.rad))) / ((ra_max_deg - ra_min_deg) * (math.cos(math.radians(dec_max_deg)) - math.cos(math.radians(dec_min_deg))))"
+    # use_all_stars: True
+
+  #could read this from the image headers, but let's set them explicitly for now
+  xsize: 2048
+  ysize: 4096
+
+  world_pos:
+    type: RADec
+    type: RADec
+    ra:
+      type: Degrees
+      theta: { type: Random, min: "$ra_min_deg", max: "$ra_max_deg" }
+    dec:
+      type: Radians
+      theta:
+        type: RandomDistribution
+        function: "math.cos(x)"  # Uniform on the sky means P(delta) ~ cos(delta)
+        x_min: "$numpy.radians(dec_min_deg)"
+        x_max: "$numpy.radians(dec_max_deg)"
+
+psf:
+  type: DES_Piff
+  depixelize: false
+  gi_color: null
+  iz_color: null
+
+gal:
+  type: Exponential
+  half_light_radius: 1.0
+  flux: "$10**(0.4*(mag_zp-18.0))"
+
+  gsparams:
+    folding_threshold: 1.0e-4
+
+star:
+    type: Gaussian  # Basically a delta function.
+    sigma: 1.e-6
+    flux: 0
+
+stamp:
+  type: CoaddMixedScene
+  objects:
+    star: 0
+    gal: 1
+  draw_method: no_pixel
+  shear_scene: True
+  shear:
+    type: G1G2
+    g1: 0.00
+    g2: 0.00
+  gsparams:
+    maximum_fft_size: 32768  # 4 x default=8192
+
+output:
+  type: DESTile
+  tilename: DES0433-2332
+  bands: ["g", "r", "i", "z"]
+  desrun: "des-pizza-slices-y6"
+  imsim_data: "$os.environ['IMSIM_DATA']"
+  noise_mode: from_weight
+  add_bkg: False
+  grid_objects: hex
+  nproc: 128
+
+  #Save weight and badpix extensions too
+  badpixfromfits:
+    hdu: 1
+    mask_hdu: 2
+    mask_file: "$orig_image_path"
+  weight:
+    hdu: 2
+
+  truth:
+    columns:
+      num: obj_num
+      # half_light_radius:
+      #     type: Eval
+      #     str: "0.0 if @current_obj_type=='star' else hlr"
+      #     fhlr: "@gal.items.0.half_light_radius"
+      g1: "$(@stamp.shear).g1"
+      g2: "$(@stamp.shear).g2"
+      # g: "$truth_g"
+      # beta: "$truth_beta"
+      # rotate: "$truth_rotate"
+      # obj_type: "@current_obj_type"
+      # obj_type_index: "@current_obj_type_index"
+      band: "band"
+      mag_zp: "$mag_zp"
+      # laigle_number:
+      #     type: Eval
+      #     str: "-1 if @current_obj_type=='star' else int(laigle_number)"
+      #     flaigle_number: { type: catalog_sampler_value, col: laigle_number }
+      # z:
+      #     type: Eval
+      #     str: "-1. if @current_obj_type=='star' else z_gal"
+      #     fz_gal: { type: catalog_sampler_value, col: "$z_col" }
