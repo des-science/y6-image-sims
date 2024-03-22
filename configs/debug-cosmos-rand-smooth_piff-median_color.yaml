@@ -104,7 +104,7 @@ input:
         - "@output.tilename"
     mag_i_max: 25.
     mag_i_col: imag
-  des_piff:
+  des_smooth_piff:
     file_name: "$piff_path"
 
 image:
@@ -151,8 +151,8 @@ image:
         fdec_star: { type: DESStarValue, col: "dec" }
 
 psf:
-  type: DES_Piff
-  depixelize: false
+  type: DES_SmoothPiff
+  # depixelize: false
   gi_color: null
   iz_color: null
 
@@ -180,6 +180,9 @@ gal:
         str: "10**(0.4*(mag_zp-mag))"
         fmag: { type: catalog_sampler_value, col: *gal_mag_col }
 
+    gsparams:
+        folding_threshold: 1.0e-4
+
 star:
     type: Gaussian  # Basically a delta function.
     sigma: 1.e-6
@@ -198,7 +201,7 @@ stamp:
     str: "object_type_list[i]",
     ii: "$obj_num-start_obj_num"
   }
-  draw_method: no_pixel
+  draw_method: auto
   shear_scene: {type: Eval,
     str: "False if object_type_list[@obj_num-start_obj_num]=='star' else True"
   }
@@ -208,9 +211,6 @@ stamp:
     g2: 0.00
   gsparams:
     maximum_fft_size: 32768  # 4 x default=8192
-    folding_threshold: 1.0e-5
-    kvalue_accuracy: 1.0e-8
-
 
 output:
   type: DESTile
@@ -221,7 +221,7 @@ output:
   noise_mode: from_weight
   add_bkg: False
   grid_objects: False
-  nproc: 32
+  nproc: 128
 
   #Save weight and badpix extensions too
   badpixfromfits:
