@@ -52,3 +52,5 @@ python analysis/compute-bias.py \
 	--seed $seed \
 	--mfrac $mfrac \
 	--n_jobs $njobs
+
+echo "column -t -s \| -o \|"

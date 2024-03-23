@@ -10,7 +10,7 @@ import fitsio
 import des_y6utils
 
 
-def grid_file(*, fname, ngrid, mfrac=0.1):
+def grid_file(*, fname, ngrid, Tratio=0.5, s2n=10, mfrac=0.1):
     d = fitsio.read(fname)
 
     dgrid = 1e4 / ngrid
@@ -24,10 +24,11 @@ def grid_file(*, fname, ngrid, mfrac=0.1):
         & (d["gauss_psf_flags"] == 0)
         & (d["gauss_obj_flags"] == 0)
         & (d["psfrec_flags"] == 0)
-        & (d["gauss_T_ratio"] > 0.5)
-        & (d["gauss_s2n"] > 10)
     )
     # msk = des_y6utils.mdet.make_mdet_cuts(d, "5")
+    # msk &= (d["nepoch_r"] + d["nepoch_i"] + d["nepoch_z"]> 20)
+    msk &= (d["gauss_T_ratio"] > Tratio)
+    msk &= d["gauss_s2n"] > s2n
     msk &= d["mfrac"] < mfrac
 
     vals = []
@@ -74,9 +75,9 @@ def grid_file(*, fname, ngrid, mfrac=0.1):
     )
 
 
-def grid_file_pair(*, fplus, fminus, ngrid, mfrac=0.1):
-    dp = grid_file(fname=fplus, ngrid=ngrid, mfrac=mfrac)
-    dm = grid_file(fname=fminus, ngrid=ngrid, mfrac=mfrac)
+def grid_file_pair(*, fplus, fminus, ngrid, Tratio=0.5, s2n=10, mfrac=0.1):
+    dp = grid_file(fname=fplus, ngrid=ngrid, Tratio=Tratio, s2n=s2n, mfrac=mfrac)
+    dm = grid_file(fname=fminus, ngrid=ngrid, Tratio=Tratio, s2n=s2n, mfrac=mfrac)
 
     assert np.all(dp["grid_ind"] == dm["grid_ind"])
 
@@ -88,7 +89,7 @@ def grid_file_pair(*, fplus, fminus, ngrid, mfrac=0.1):
     dt.append(("grid_ind", "i4"))
     d = np.zeros(ngrid * ngrid, dtype=dt)
     for _d, tail in [(dp, "_p"), (dm, "_m")]:
-        for name in dp.dtype.names:
+        for name in _d.dtype.names:
             if name != "grid_ind":
                 d[name + tail] = _d[name]
     d["grid_ind"] = dp["grid_ind"]
@@ -116,7 +117,9 @@ def compute_shear_pair(d):
     g2m_m = np.nansum(d["g2_2m_m"] * d["n_2m_m"]) / np.nansum(d["n_2m_m"])
     R22_m = (g2p_m - g2m_m) / 0.02
 
-    return (g1_p - g1_m) / (R11_p + R11_m) / 0.02 - 1., (g2_p + g2_m) / (R22_p + R22_m)
+    # return (g1_p - g1_m) / (R11_p + R11_m) / 0.02 - 1., (g2_p + g2_m) / (R22_p + R22_m)
+    # return (g1_p - g1_m) / (R11_p + R11_m) / 0.02 - 1., (g1_p + g1_m) / (R11_p + R11_m)
+    return (g1_p - g1_m) / (R11_p + R11_m) / 0.02 - 1., (g1_p + g1_m) / (R11_p + R11_m), (g2_p + g2_m) / (R22_p + R22_m)
 
 
 def get_args():
@@ -144,8 +147,25 @@ def get_args():
         "--mfrac",
         type=float,
         required=False,
-        default=0.1,
+        default=[0.1],
+        nargs="+",
         help="mfrac cut [float]",
+    )
+    parser.add_argument(
+        "--s2n",
+        type=float,
+        required=False,
+        default=[10],
+        nargs="+",
+        help="s2n cut [float]",
+    )
+    parser.add_argument(
+        "--Tratio",
+        type=float,
+        required=False,
+        default=[0.5],
+        nargs="+",
+        help="Tratio cut [float]",
     )
     return parser.parse_args()
 
@@ -153,6 +173,10 @@ def get_args():
 def main():
 
     args = get_args()
+
+    mfracs = args.mfrac
+    s2ns = args.s2n
+    Tratios = args.Tratio
 
     pairs = {}
 
@@ -187,45 +211,72 @@ def main():
 
     ntiles = len([p for p in pairs.values() if p])
 
-    mfrac = args.mfrac
-    jobs = [
-        joblib.delayed(grid_file_pair)(fplus=pfile, fminus=mfile, ngrid=10, mfrac=mfrac)
-        for seed in pairs.values()
-        for pfile, mfile in seed.values()
-    ]
-    print(f"Processing {len(jobs)} paired simulations ({ntiles} tiles)")
+    results = []
+    for Tratio in Tratios:
+        for s2n in s2ns:
+            for mfrac in mfracs:
+                jobs = [
+                    joblib.delayed(grid_file_pair)(fplus=pfile, fminus=mfile, ngrid=10, Tratio=Tratio, s2n=s2n, mfrac=mfrac)
+                    for seed in pairs.values()
+                    for pfile, mfile in seed.values()
+                ]
+                print(f"Processing {len(jobs)} paired simulations ({ntiles} tiles)")
 
-    with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
-        d = par(jobs)
+                with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
+                    d = par(jobs)
 
-    d = np.concatenate(d, axis=0)
+                d = np.concatenate(d, axis=0)
 
-    ns = 1000  # number of bootstrap resamples
-    rng = np.random.RandomState(seed=args.seed)
+                ns = 1000  # number of bootstrap resamples
+                rng = np.random.RandomState(seed=args.seed)
 
-    m_mean, c_mean = compute_shear_pair(d)
+                m_mean, c_mean_1, c_mean_2 = compute_shear_pair(d)
 
-    print(f"Bootstrapping with {ns} resamples")
-    bootstrap = []
-    for i in tqdm.trange(ns, ncols=80):
-        rind = rng.choice(d.shape[0], size=d.shape[0], replace=True)
-        bootstrap.append(compute_shear_pair(d[rind]))
+                print(f"Bootstrapping with {ns} resamples")
+                bootstrap = []
+                for i in tqdm.trange(ns, ncols=80):
+                    rind = rng.choice(d.shape[0], size=d.shape[0], replace=True)
+                    bootstrap.append(compute_shear_pair(d[rind]))
 
-    bootstrap = np.array(bootstrap)
-    m_std, c_std = np.std(bootstrap, axis=0)
+                bootstrap = np.array(bootstrap)
+                m_std, c_std_1, c_std_2 = np.std(bootstrap, axis=0)
 
-    # print("\v")
-    # print("m:	(%0.3e, %0.3e)" % (m_mean - m_std * 3, m_mean + m_std * 3))
-    # print("m mean:	%0.3e" % m_mean)
-    # print("m std:	%0.3e [3 sigma]" % (m_std * 3))
-    # print("\v")
-    # print("c:	(%0.3e, %0.3e)" % (c_mean - c_std * 3, c_mean + c_std * 3))
-    # print("c mean:	%0.3e" % c_mean)
-    # print("c std:	%0.3e [3 sigma]" % (c_std * 3))
-    # print("\v")
-    print(f"| configuration | m mean | m std (3σ) | c mean | c std (3σ) | # tiles | mfrac |")
-    print(f"|---|---|---|---|---|---|")
-    print(f"| {config_name} | {m_mean:0.3e} | {m_std*3:0.3e} | {c_mean:0.3e} | {c_std*3:0.3e} | {ntiles} | {mfrac} |")
+                # print("\v")
+                # print("m:	(%0.3e, %0.3e)" % (m_mean - m_std * 3, m_mean + m_std * 3))
+                # print("m mean:	%0.3e" % m_mean)
+                # print("m std:	%0.3e [3 sigma]" % (m_std * 3))
+                # print("\v")
+                # print("c:	(%0.3e, %0.3e)" % (c_mean - c_std * 3, c_mean + c_std * 3))
+                # print("c mean:	%0.3e" % c_mean)
+                # print("c std:	%0.3e [3 sigma]" % (c_std * 3))
+                # print("\v")
+                # print(f"| {config_name} | {m_mean:0.3e} | {m_std*3:0.3e} | {c_mean_1:0.3e} | {c_std_1*3:0.3e} | {c_mean_2:0.3e} | {c_std_2*3:0.3e} | {ntiles} | {mfrac} |")
+                results.append(
+                    (config_name, m_mean, m_std * 3, c_mean_1, c_std_1 * 3, c_mean_2, c_std_2 * 3, ntiles, Tratio, s2n, mfrac)
+                )
+
+    print(f"| configuration | m mean | m std (3σ) | c_1 mean | c_1 std (3σ) | c_2 mean | c_2 std (3σ) | # tiles | Tratio | s2n | mfrac |")
+    # print(f"|---|---|---|---|---|---|")
+    # header = ("configuration", "m mean", "m std (3σ)", "c_1 mean", "c_1 std (3σ)", "c_2 mean", "c_2 std (3σ)", "# tiles", "mfrac")
+    # print(header)
+    # columns = [
+    #     [
+    #         results[i][j] for i in range(len(results))
+    #     ] for j in range(len(results[0]))
+    # ]
+    # data = {
+    #     header[j]: [
+    #         results[i][j] for i in range(len(results))
+    #     ] for j in range(len(results[0]))
+    # }
+    # column_widths = [
+    #     max([range(val) for val in col])
+    #     for col in columns
+    # ]
+    for result in results:
+        # print(result)
+        print(f"| {result[0]} | {result[1]:0.3e} | {result[2]:0.3e} | {result[3]:0.3e} | {result[4]:0.3e} | {result[5]:0.3e} | {result[6]:0.3e} | {result[7]} | {result[8]} | {result[9]} | {result[10]} |")
+
 
 if __name__ == "__main__":
     main()
