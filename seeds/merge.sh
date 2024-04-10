@@ -22,4 +22,4 @@ if [[ ! $seeds ]]; then
 fi
 echo "seeds: $seeds"
 
-paste -d ' ' $tiles $seeds | shuf > runs-y6.txt
+paste -d ' ' $tiles $seeds | shuf > args-y6.txt
