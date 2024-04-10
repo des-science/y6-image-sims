@@ -19,60 +19,39 @@ bash meds/run-download.sh -f tiles-y6.txt
 
 ## seeds
 
-TODO: add example usage; the main output is `args-y6.txt`, which is committed to this repository.
+`run.sh` -- generate list of seeds
+```
+bash seeds/run.sh -f seeds-y6.txt
+```
+
+`merge.sh` -- merge seeds and tiles into an arguments file
+```
+bash seeds/merge.sh -t tiles-y6.txt -s seeds-y6.txt
+```
+note the output `args-y6.txt` is committed to this repository.
 
 ## eastlake
 
-NOTE: these scripts are being updated to be easier to use and maintain. the updated versions are still works in progres and not included here
+```
+`task.py` -- run a single eastlake simulation
+```
+python eastlake/task.sh --verbosity 1 --resume --shear 0.02 0.00 $config $tile $seed ${output}/plus
+```
+note: use `--dry-run` to check the commands without running anything
 
-`test.sh` -- quickly test a config
+`array-task.sh` -- wrapper for task to be submitted via slurm job array
 ```
-bash eastlake/test.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM
-```
-
-<!--
-`run.sh` -- run a full simulation pair
-```
-sbatch eastlake/run.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM
-```
--->
-
-`run-single-shear.sh` -- run a full simulation for either shear
-```
-sbatch eastlake/run-single-shear.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM -g plus
+sbatch eastlake/array-task.sh -c $config -f args-y6.txt
 ```
 
-`run-all.sh` -- run a full simulation pair for all tiles
+`submit-array.sh` -- submit multiple tiles via job array (e.g., for tiles 1--100)
 ```
-bash eastlake/run-all.sh -c configs/grid-bright.yaml -f tiles-y6.txt -s $RANDOM
-```
-
-`resume.sh` -- resume a simulation pair with a checkpoint (i.e., from a failed job)
-```
-sbatch eastlake/resume.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM
-```
-
-`resume-single-shear.sh` -- resume a simulation for a single shear with a checkpoint (i.e., from a failed job)
-```
-sbatch eastlake/resume-single-shear.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM -g plus
-```
-
-`resume-all.sh` -- resume or rerun all simulation pairs that do not have a metadetect catalog output
-```
-bash eastlake/resume-all.sh -c configs/grid-bright.yaml
-```
-
-`resubmit-all.sh` -- resubmit all simulation pairs that failed to run
-```
-bash eastlake/resubmit-all.sh -c configs/grid-bright.yaml -f tiles-y6.txt -s $RANDOM
-```
-
-`submit-array.sh` -- submit all tiles via job array
-```
-bash eastlake/submit-array.sh -c configs/grid-bright.yaml -f tiles-y6.txt -s $RANDOM
+bash eastlake/submit-array.sh -c configs/grid-bright.yaml -f args-y6.txt -j 1:100
 ```
 
 ## analysis
+
+NOTE: work in progress; various diagnostic plots, etc. to be added
 
 `compute_bias.py` -- compute multiplicative and additive shear bias for output sims
 ```
@@ -83,6 +62,7 @@ python analysis/compute_bias.py $SCRATCH/y6-image-sims/grid-bright --seed $RANDO
 ```
 bash analysis/run.sh -c configs/grid-bright.yaml -s $RANDOM -n 8
 ```
+
 ```
 sbatch analysis/run.sh -c configs/grid-bright.yaml -s $RANDOM -n 128
 ```
