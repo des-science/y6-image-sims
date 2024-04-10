@@ -8,6 +8,7 @@ utilities, scripts, and configs for running [eastlake](https://github.com/des-sc
 ```
 bash tiles/run-query.sh -f tiles-y6.txt
 ```
+note the output `tiles-y6.txt` is committed to this repository.
 
 ## meds
 
@@ -16,17 +17,25 @@ bash tiles/run-query.sh -f tiles-y6.txt
 bash meds/run-download.sh -f tiles-y6.txt
 ```
 
+## seeds
+
+TODO: add example usage; the main output is `args-y6.txt`, which is committed to this repository.
+
 ## eastlake
+
+NOTE: these scripts are being updated to be easier to use and maintain. the updated versions are still works in progres and not included here
 
 `test.sh` -- quickly test a config
 ```
 bash eastlake/test.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM
 ```
 
+<!--
 `run.sh` -- run a full simulation pair
 ```
 sbatch eastlake/run.sh -c configs/grid-bright.yaml -t DES2205+0126 -s $RANDOM
 ```
+-->
 
 `run-single-shear.sh` -- run a full simulation for either shear
 ```
