@@ -32,7 +32,6 @@ note the output `args-y6.txt` is committed to this repository.
 
 ## eastlake
 
-```
 `task.py` -- run a single eastlake simulation
 ```
 python eastlake/task.sh --verbosity 1 --resume --shear 0.02 0.00 $config $tile $seed ${output}/plus
