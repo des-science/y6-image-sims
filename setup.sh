@@ -1,13 +1,20 @@
 #!/bin/bash
 
+module load texlive
 module load conda
-conda activate /global/common/software/des/mambaforge/envs/des-y6
+# conda activate /global/common/software/des/mambaforge/envs/des-y6
 # conda activate /global/common/software/des/mambaforge/envs/des-y6-imsims-dev
+conda activate /pscratch/sd/s/smau/conda/des-y6-dev
 
-# export IMSIM_DATA=/global/cfs/cdirs/des/y6-image-sims
-# export MEDS_DIR=/global/cfs/cdirs/des/y6-image-sims
+# for downloading meds for desdm
+export DES_RSYNC_PASSFILE=/global/cfs/cdirs/des/y6-image-sims/rsync_pass-smau.txt
+export DESREMOTE_RSYNC=smau@desar2.cosmology.illinois.edu::ALLDESFiles/new_archive/desarchive/
+
+# used for meds download, eastlake, etc.
 export IMSIM_DATA=/global/cfs/cdirs/desbalro
 export MEDS_DIR=/global/cfs/cdirs/desbalro
+# export PYTHONPATH=~/software/galsim_extra:$PYTHONPATH
+# export PYTHONPATH=~/software/montara:$PYTHONPATH
 
 # see https://joblib.readthedocs.io/en/latest/parallel.html#avoiding-over-subscription-of-cpu-resources
 export OMP_NUM_THREADS=1
