@@ -45,7 +45,7 @@ sbatch eastlake/array-task.sh -c $config -f args-y6.txt
 
 `submit-array.sh` -- submit multiple tiles via job array (e.g., for tiles 1--100)
 ```
-bash eastlake/submit-array.sh -c configs/grid-bright.yaml -f args-y6.txt -j 1:100
+bash eastlake/submit-array.sh -c configs/grid-bright.yaml -f args-y6.txt -j 1-100
 ```
 
 ## analysis
