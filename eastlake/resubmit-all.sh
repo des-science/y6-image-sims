@@ -1,49 +1,52 @@
 #!/bin/bash
 
 while getopts 'c:f:s:n:' opt; do
-	case $opt in
-		(c) config=$OPTARG;;
-		(f) filename=$OPTARG;;
-		(s) seed=$OPTARG;;
-		(n) njobs=$OPTARG;;
-	esac
+    case $opt in
+        c) config=$OPTARG;;
+        f) filename=$OPTARG;;
+        s) seed=$OPTARG;;
+        n) njobs=$OPTARG;;
+        \?)
+            printf '%s\n' "Invalid option. Exiting">&2
+            exit;;
+    esac
 done
 
 if [[ ! $config ]]; then
-	printf '%s\n' "No config specified. Exiting.">&2
-	exit 1
+    printf '%s\n' "No config specified. Exiting.">&2
+    exit 1
 fi
-echo "config:	$config"
+echo "config: $config"
 
 if [[ ! $filename ]]; then
-	printf '%s\n' "No file specified. Exiting.">&2
-	exit 1
+    printf '%s\n' "No file specified. Exiting.">&2
+    exit 1
 fi
-echo "file:	$filename"
+echo "file: $filename"
 
 if [[ ! $seed ]]; then
-	printf '%s\n' "No seed specified. Exiting.">&2
-	exit 1
+    printf '%s\n' "No seed specified. Exiting.">&2
+    exit 1
 fi
-echo "seed:	$seed"
+echo "seed: $seed"
 RANDOM=$seed
 
 if [[ ! $njobs ]]; then
-	njobs=$(wc -l < $filename)
+    njobs=$(wc -l < $filename)
 fi
-echo "njobs:	$njobs"
+echo "njobs: $njobs"
 
 # run=$(basename $(dirname $config))
 run=$(basename $config .yaml)
 submitted="${filename%.*}-${run}-submitted.txt"
 
-for tile in $(ls $SCRATCH/y6-image-sims/$run | comm -23 <(sort $submitted) - | shuf | head -n $njobs)
+for tile in $($SCRATCH/y6-image-sims/$run/* | comm -23 <(sort $submitted) - | shuf | head -n $njobs)
 do
-	seed=$RANDOM
-	# echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
-	# sbatch eastlake/run.sh -c $config -t $tile -s $seed
-	echo "sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g plus"
-	sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g plus
-	echo "sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g minus"
-	sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g minus
+    seed=$RANDOM
+    # echo "sbatch eastlake/run.sh -c $config -t $tile -s $seed"
+    # sbatch eastlake/run.sh -c $config -t $tile -s $seed
+    echo "sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g plus"
+    sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g plus
+    echo "sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g minus"
+    sbatch eastlake/run-single-shear.sh -c $config -t $tile -s $seed -g minus
 done
