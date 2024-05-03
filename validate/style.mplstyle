@@ -1,0 +1,38 @@
+font.family : monospace
+
+axes.formatter.useoffset: False
+axes.prop_cycle: cycler('color', ['black'])
+# axes.titlesize : 12
+# axes.labelsize : 10
+
+xtick.bottom: True
+xtick.top: True
+xtick.minor.visible: True
+xtick.direction: in
+# xtick.labelsize : 10
+
+ytick.left: True
+ytick.right: True
+ytick.minor.visible: True
+ytick.direction: in
+# ytick.labelsize : 10
+
+lines.color: k
+lines.linestyle  : -
+lines.linewidth: 0.8
+lines.markersize: 1
+
+scatter.marker: .
+
+# legend.fontsize : 12
+legend.framealpha: 1
+legend.edgecolor: 0
+legend.fancybox: False
+
+# figure.titlesize : 12
+
+# image.aspect : equal
+image.cmap : binary
+image.interpolation: none
+image.resample: False
+

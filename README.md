@@ -54,20 +54,36 @@ sbatch eastlake/array-task.sh -c $config -f args-y6.txt
 bash eastlake/submit-array.sh -c configs/grid-bright.yaml -f args-y6.txt -j 1-100
 ```
 
-## analysis
+## validate
 
-NOTE: work in progress; various diagnostic plots, etc. to be added
+scripts for making validate plots; e.g.,
+`plot_color-color.py`
+```
+$ python validate/plot_mag.py --help
+usage: plot_mag.py [-h] [--seed SEED] [--n_jobs N_JOBS] [--fast] imsim_dir
+
+positional arguments:
+  imsim_dir        Image simulation output directory
+
+options:
+  -h, --help       show this help message and exit
+  --seed SEED      RNG seed [int]
+  --n_jobs N_JOBS  Number of joblib jobs [int]
+  --fast           whether to do a fast run
+```
+
+## measure
 
 `compute_bias.py` -- compute multiplicative and additive shear bias for output sims
 ```
-python analysis/compute_bias.py $SCRATCH/y6-image-sims/grid-bright --seed $RANDOM
+python measure/compute_bias.py $SCRATCH/y6-image-sims/grid-bright --seed $RANDOM
 ```
 
 `run.sh` -- compute multiplicative and additive shear bias for output sims (via sbatch)
 ```
-bash analysis/run.sh -c configs/grid-bright.yaml -s $RANDOM -n 8
+bash measure/run.sh -c configs/grid-bright.yaml -s $RANDOM -n 8
 ```
 
 ```
-sbatch analysis/run.sh -c configs/grid-bright.yaml -s $RANDOM -n 128
+sbatch measure/run.sh -c configs/grid-bright.yaml -s $RANDOM -n 128
 ```

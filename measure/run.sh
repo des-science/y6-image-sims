@@ -47,7 +47,7 @@ source setup.sh
 # run=$(basename $(dirname $config))
 run=$(basename $config .yaml)
 
-python analysis/compute-bias.py \
+python measure/compute-bias.py \
 	$SCRATCH/y6-image-sims/$run \
 	--seed $seed \
 	--mfrac $mfrac \
