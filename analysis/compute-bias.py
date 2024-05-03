@@ -9,27 +9,26 @@ import fitsio
 
 import des_y6utils
 
+import selections
+import weights
+
+
+def get_grid(data, ngrid):
+
+    dgrid = 1e4 / ngrid
+    xind = np.floor(data["x"] / dgrid)
+    yind = np.floor(data["y"] / dgrid)
+    gind = yind * ngrid + xind
+
+    return gind
+
 
 def grid_file(*, fname, ngrid, Tratio=0.5, s2n=10, mfrac=0.1):
     d = fitsio.read(fname)
 
-    dgrid = 1e4 / ngrid
-    xind = np.floor(d["x"] / dgrid)
-    yind = np.floor(d["y"] / dgrid)
-    gind = yind * ngrid + xind
+    gind = get_grid(d, ngrid)
 
-    msk = (
-        ((d["mask_flags"] & (~16)) == 0)
-        & (d["gauss_flags"] == 0)
-        & (d["gauss_psf_flags"] == 0)
-        & (d["gauss_obj_flags"] == 0)
-        & (d["psfrec_flags"] == 0)
-    )
-    # msk = des_y6utils.mdet.make_mdet_cuts(d, "5")
-    # msk &= (d["nepoch_r"] + d["nepoch_i"] + d["nepoch_z"]> 20)
-    msk &= (d["gauss_T_ratio"] > Tratio)
-    msk &= d["gauss_s2n"] > s2n
-    msk &= d["mfrac"] < mfrac
+    msk = selections.get_selection(d)
 
     vals = []
 
@@ -41,9 +40,14 @@ def grid_file(*, fname, ngrid, Tratio=0.5, s2n=10, mfrac=0.1):
             for shear in ["noshear", "1p", "1m", "2p", "2m"]:
                 sgmsk = gmsk & (d["mdet_step"] == shear)
                 if np.any(sgmsk):
-                    sval.append(np.mean(d["gauss_g_1"][sgmsk]))
-                    sval.append(np.mean(d["gauss_g_2"][sgmsk]))
-                    sval.append(np.sum(sgmsk))
+                    _d = d[sgmsk]
+                    _w = weights.get_shear_weights(_d)
+                    # sval.append(np.mean(d["gauss_g_1"][sgmsk]))
+                    # sval.append(np.mean(d["gauss_g_2"][sgmsk]))
+                    # sval.append(np.sum(sgmsk))
+                    sval.append(np.average(_d["gauss_g_1"], weights=_w))
+                    sval.append(np.average(_d["gauss_g_2"], weights=_w))
+                    sval.append(np.sum(_w))  # TODO should this be sum(_w) or sum(sgmsk)?
                 else:
                     sval.append(np.nan)
                     sval.append(np.nan)
