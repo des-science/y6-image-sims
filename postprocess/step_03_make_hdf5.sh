@@ -36,5 +36,3 @@ chmod go-rwx ${output_dir}/metadetect_cutsv6_all.h5
 chmod go-rwx ${output_dir}/metadetect_cutsv6_patch*.h5
 chmod u-w ${output_dir}/metadetect_cutsv6_all.h5
 chmod u-w ${output_dir}/metadetect_cutsv6_patch*.h5
-
-echo "done"

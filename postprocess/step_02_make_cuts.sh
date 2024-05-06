@@ -52,5 +52,3 @@ pizza-patches-make-cut-files \
 
 chmod go-rwx ${output_dir}/*.fits
 chmod u-w ${output_dir}/*.fits
-
-echo "done"

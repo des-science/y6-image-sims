@@ -28,19 +28,18 @@ if [[ ! $njobs ]]; then
 fi
 echo "njobs: $njobs"
 
-run=$(basename ${config} .yaml)
+echo "running step_00_make_flist"
+bash postprocess/step_00_make_flist.sh -c ${config} -s ${shear}
+echo "done"
 
-output_flist=${run}-${shear}_flist.txt
-if [[ ! -f ${output_flist} ]]; then
-    echo "flist not found!"
-    echo "expected ${output_flist}"
-    exit
-fi
+echo "running step_01_make_uids"
+bash postprocess/step_01_make_uids.sh -c ${config} -s ${shear} -n ${njobs}
+echo "done"
 
-output_uids=${run}-${shear}_uids.yaml
-touch ${output_uids}
+echo "running step_02_make_cuts"
+bash postprocess/step_02_make_cuts.sh -c ${config} -s ${shear}
+echo "done"
 
-pizza-patches-make-uids \
-    --flist=${output_flist} \
-    --output=${output_uids} \
-    --n-jobs=${n_jobs}
+echo "running step_03_make_hdf5"
+bash postprocess/step_03_make_hdf5.sh -c ${config} -s ${shear}
+echo "done"

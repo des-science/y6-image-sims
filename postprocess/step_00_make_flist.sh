@@ -33,4 +33,3 @@ do
     echo ${fname}
     echo ${fname} >> ${output_flist}
 done
-echo "done"
