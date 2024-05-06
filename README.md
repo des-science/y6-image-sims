@@ -54,6 +54,13 @@ sbatch eastlake/array-task.sh -c $config -f args-y6.txt
 bash eastlake/submit-array.sh -c configs/grid-bright.yaml -f args-y6.txt -j 1-100
 ```
 
+## postprocess
+
+`run-all.sh` -- run postprocess steps to apply cuts and create HDF5 catalog
+```
+bash postprocess/run-all.sh -c $config -s $shear
+```
+
 ## validate
 
 scripts for making validate plots; e.g.,

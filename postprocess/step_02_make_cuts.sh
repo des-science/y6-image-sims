@@ -41,7 +41,8 @@ fi
 output_dir=${SCRATCH}/y6-image-sims-cuts/${run}/${shear}
 mkdir -p ${output_dir}
 
-patches_file=/astro/u/esheldon/y6patches/patches-altrem-npatch200-seed8888.fits.gz  # FIXME
+# patches_file=/astro/u/esheldon/y6patches/patches-altrem-npatch200-seed8888.fits.gz  # FIXME
+patches_file=/global/cfs/cdirs/des/y6-shear-catalogs/patches-altrem-npatch200-seed9999_v1.fits.gz
 
 pizza-patches-make-cut-files \
     --flist=${output_flist} \
@@ -50,5 +51,5 @@ pizza-patches-make-cut-files \
     --outdir=${output_dir} \
     --keep-coarse-cuts
 
-chmod go-rwx ${output_dir}/*.fits
-chmod u-w ${output_dir}/*.fits
+# chmod go-w ${output_dir}/*.fits
+# chmod u-w ${output_dir}/*.fits

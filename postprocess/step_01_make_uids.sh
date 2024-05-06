@@ -1,10 +1,9 @@
 #!/bin/bash
 
-while getopts 'c:s:n:' opt; do
+while getopts 'c:s:' opt; do
     case $opt in
         c) config=$OPTARG;;
         s) shear=$OPTARG;;
-        n) njobs=$OPTARG;;
         \?)
             printf '%s\n' "Invalid option. Exiting">&2
             exit;;
@@ -23,11 +22,6 @@ if [[ ! $shear ]]; then
 fi
 echo "shear: ${shear}"
 
-if [[ ! $njobs ]]; then
-    njobs=1
-fi
-echo "njobs: $njobs"
-
 run=$(basename ${config} .yaml)
 
 output_flist=${run}-${shear}_flist.txt
@@ -43,4 +37,4 @@ touch ${output_uids}
 pizza-patches-make-uids \
     --flist=${output_flist} \
     --output=${output_uids} \
-    --n-jobs=${n_jobs}
+    --n-jobs=1

@@ -26,13 +26,13 @@ run=$(basename ${config} .yaml)
 
 input_dir=${SCRATCH}/y6-image-sims-cuts/${run}/${shear}
 output_dir=${SCRATCH}/y6-image-sims-cats/${run}/${shear}
-
+mkdir -p ${output_dir}
 
 pizza-patches-make-hdf5-cats \
     --output-file-base=${output_dir}/"metadetect_cutsv6" \
     --input-file-dir=${input_dir}
 
-chmod go-rwx ${output_dir}/metadetect_cutsv6_all.h5
-chmod go-rwx ${output_dir}/metadetect_cutsv6_patch*.h5
-chmod u-w ${output_dir}/metadetect_cutsv6_all.h5
-chmod u-w ${output_dir}/metadetect_cutsv6_patch*.h5
+# chmod go-w ${output_dir}/metadetect_cutsv6_all.h5
+# chmod go-w ${output_dir}/metadetect_cutsv6_patch*.h5
+# chmod u-w ${output_dir}/metadetect_cutsv6_all.h5
+# chmod u-w ${output_dir}/metadetect_cutsv6_patch*.h5
