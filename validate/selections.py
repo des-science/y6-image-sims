@@ -15,6 +15,8 @@ def get_selection(data, version=6):
     # msk = ((data["mask_flags"] & (~16)) == 0)
     data["mask_flags"] = data["mask_flags"] & (~16)
 
+    msk = des_y6utils.mdet.make_mdet_cuts(data, str(version))
+
     # apply other selections as in data
     msk &= (
         (data['psfrec_flags'] == 0) &
@@ -31,7 +33,7 @@ def get_selection(data, version=6):
     )
 
     # apply metadetect cuts
-    msk &= des_y6utils.mdet.make_mdet_cuts(data, str(version))
+    # msk &= des_y6utils.mdet.make_mdet_cuts(data, str(version))
     # msk &= data["gauss_T_ratio"] > 0.5
     # msk &= data["gauss_s2n"] > 10
     # msk &= data["mfrac"] < 0.1
