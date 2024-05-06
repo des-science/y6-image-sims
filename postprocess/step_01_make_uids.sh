@@ -1,9 +1,10 @@
 #!/bin/bash
 
-while getopts 'c:s:' opt; do
+while getopts 'c:s:n:' opt; do
     case $opt in
         c) config=$OPTARG;;
         s) shear=$OPTARG;;
+        n) njobs=$OPTARG;;
         \?)
             printf '%s\n' "Invalid option. Exiting">&2
             exit;;
@@ -22,15 +23,27 @@ if [[ ! $shear ]]; then
 fi
 echo "shear: ${shear}"
 
+if [[ ! $njobs ]]; then
+    njobs=1
+fi
+echo "njobs: $njobs"
+
 run=$(basename ${config} .yaml)
 
-input_dir=${SCRATCH}/y6-image-sims/${run}
 output_flist=${run}-${shear}_flist.txt
-touch ${output_flist}
 
-for fname in ${input_dir}/DES**/**/${shear}/des-pizza-slices-y6/DES**/metadetect/*_metadetect-config_mdetcat_part0000.fits
-do
-    echo ${fname}
-    echo ${fname} >> ${output_flist}
-done
+if [[ ! -f ${output_flist} ]]; then
+    echo "flist not found!"
+    echo "expected ${output_flist}"
+    exit
+fi
+
+output_uids=${run}-${shear}_uids.yaml
+touch ${output_uids}
+
+pizza-patches-make-uids \
+    --flist=${output_flist} \
+    --output=${output_uids} \
+    --n-jobs=${n_jobs}
+
 echo "done"
