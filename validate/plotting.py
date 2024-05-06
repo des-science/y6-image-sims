@@ -30,7 +30,7 @@ def set_style( restore_defaults=False):
         mpl.rcdefaults()
 
     logger.info("using plotting style")
-    mstyle.use("analysis/style.mplstyle")
+    mstyle.use("validate/style.mplstyle")
 
     # if "drafter" in mpl.colormaps:
     #     logger.info(f"using drafter colormap")
