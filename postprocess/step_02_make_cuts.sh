@@ -1,10 +1,9 @@
 #!/bin/bash
 
-while getopts 'c:s:n:' opt; do
+while getopts 'c:s:' opt; do
     case $opt in
         c) config=$OPTARG;;
         s) shear=$OPTARG;;
-        n) njobs=$OPTARG;;
         \?)
             printf '%s\n' "Invalid option. Exiting">&2
             exit;;
@@ -23,11 +22,6 @@ if [[ ! $shear ]]; then
 fi
 echo "shear: ${shear}"
 
-if [[ ! $njobs ]]; then
-    njobs=1
-fi
-echo "njobs: $njobs"
-
 run=$(basename ${config} .yaml)
 
 output_flist=${run}-${shear}_flist.txt
@@ -38,11 +32,25 @@ if [[ ! -f ${output_flist} ]]; then
 fi
 
 output_uids=${run}-${shear}_uids.yaml
-touch ${output_uids}
+if [[ ! -f ${output_uids} ]]; then
+    echo "uids not found!"
+    echo "expected ${output_uids}"
+    exit
+fi
 
-pizza-patches-make-uids \
+output_dir=${SCRATCH}/y6-image-sims-cuts/${run}/${shear}
+mkdir -p ${output_dir}
+
+patches_file=/astro/u/esheldon/y6patches/patches-altrem-npatch200-seed8888.fits.gz  # FIXME
+
+pizza-patches-make-cut-files \
     --flist=${output_flist} \
-    --output=${output_uids} \
-    --n-jobs=${n_jobs}
+    --uid-info=${output_uids} \
+    --patches=${patches_file} \
+    --outdir=${output_dir} \
+    --keep-coarse-cuts
+
+chmod go-rwx ${output_dir}/*.fits
+chmod u-w ${output_dir}/*.fits
 
 echo "done"
