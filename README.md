@@ -8,30 +8,30 @@ utilities, scripts, and configs for running [eastlake](https://github.com/des-sc
  - star catalogs: `/global/cfs/projectdirs/des/atong/y6kp-shear/starsim/catalogs/`
  - input cosmos catalog: `/global/cfs/cdirs/des/y3-image-sims/input_cosmos_v4.fits`
 
-## tiles
+## [tiles](./tiles/README.md)
 
 scripts for querying lists of DES tiles via easyaccess
 
-## meds
+## [meds](./meds/README.md)
 
 scripts for downloading meds for DES tiles via rsync
 
-## seeds
+## [seeds](./seeds/README.md)
 
 script for generating list of seeds for each tile
 
-## eastlake
+## [eastlake](./eastlake/README.md)
 
 scripts for running image simulations with eastlake
 
-## postprocess
+## [postprocess](./postprocess/README.md)
 
 create a concatenated hdf5 file of the metadetect catalogs for the image simulations
 
-## validate
+## [validate](./postprocess/README.md)
 
 scripts for making validation plots
 
-## measure
+## [measure](./measure/README.md)
 
 scripts for measuring multiplicative and additive bias of image simulations
