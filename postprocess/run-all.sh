@@ -22,8 +22,14 @@ if [[ ! $shear ]]; then
 fi
 echo "shear: ${shear}"
 
+source setup.sh
+
 echo "running step_00_make_flist"
 bash postprocess/step_00_make_flist.sh -c ${config} -s ${shear}
+echo "done"
+
+echo "running step_01_make_uids"
+bash postprocess/step_01_make_uids.sh -c ${config} -s ${shear}
 echo "done"
 
 echo "running step_02_make_cuts"
