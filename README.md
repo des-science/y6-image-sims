@@ -28,7 +28,7 @@ scripts for running image simulations with eastlake
 
 create a concatenated hdf5 file of the metadetect catalogs for the image simulations
 
-## [validate](./postprocess/README.md)
+## [validate](./validate/README.md)
 
 scripts for making validation plots
 
