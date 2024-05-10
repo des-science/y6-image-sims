@@ -105,8 +105,8 @@ input:
         y_sim: [250, 9750]
         mag_i_red_sim: [15., 25.4]
         bdf_hlr: [0, 5]
-        isgal: 1
-        mask_flags: 0
+        isgal: [1]
+        mask_flags: [0]
   desstar:
     file_name:
         type: FormattedStr
@@ -233,7 +233,7 @@ output:
   noise_mode: from_weight
   add_bkg: False
   grid_objects: False
-  nproc: 128
+  nproc: 32
 
   #Save weight and badpix extensions too
   badpixfromfits:
