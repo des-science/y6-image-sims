@@ -28,7 +28,7 @@ def get_selection(data, version=6):
         (data['pgauss_band_flux_flags_r'] == 0) &
         (data['pgauss_band_flux_flags_i'] == 0) &
         (data['pgauss_band_flux_flags_z'] == 0) &
-        # (data['mask_flags'] == 0) &
+        (data['mask_flags'] == 0) &
         (data['shear_bands'] == '123')
     )
 
