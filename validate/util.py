@@ -11,6 +11,22 @@ import healsparse
 import yaml
 
 
+# thanks @eli
+def extractor(m, poly):
+    pixels = poly.get_pixels(nside=m.nside_sparse)
+
+    extracted = healsparse.HealSparseMap.make_empty(
+        nside_coverage=m.nside_coverage,
+        nside_sparse=m.nside_sparse,
+        dtype=np.bool_,
+        sentinel=False,
+        bit_packed=True,
+    )
+    extracted[pixels] = m[pixels]
+
+    return extracted
+
+
 def load_wcs(tile, band, pizza_slices_dir="", des_pizza_slices_dir=""):
     print(f"loading coadd wcs for {tile}/{band}")
 
@@ -33,8 +49,8 @@ def load_wcs(tile, band, pizza_slices_dir="", des_pizza_slices_dir=""):
     return coadd_wcs
 
 
-def get_tile_area(tile, band, shear=None, pizza_slices_dir="", des_pizza_slices_dir="", mdet_mask=None):
-    print(f"computing effective tile area for {tile}/{band}")
+def get_tile_mask(tile, band, shear=None, pizza_slices_dir="", des_pizza_slices_dir="", mdet_mask=None):
+    print(f"computing effective tile mask for {tile}/{band}")
     wcs = load_wcs(
         tile,
         band,
@@ -62,15 +78,78 @@ def get_tile_area(tile, band, shear=None, pizza_slices_dir="", des_pizza_slices_
         wcs.toWorld(galsim.PositionD(0, 9750).shear(applied_shear)).dec.deg,
     ]
 
-    hsp_polygon = healsparse.Polygon(
+    polygon = healsparse.Polygon(
         ra=ra_vertices,
         dec=dec_vertices,
-        value=1,
+        value=True,
     )
-    nside_sparse = mdet_mask.nside_sparse
-    valid_area = np.sum(
-         mdet_mask[hsp_polygon.get_pixels(nside=nside_sparse)],
-    ) * hpg.nside_to_pixel_area(nside_sparse, degrees=True)
+    # nside_sparse = mdet_mask.nside_sparse
+    # nside_coverage = mdet_mask.nside_coverage
+    # poly_map = polygon.get_map_like(mdet_mask)
+
+    # # valid_map = mdet_mask[polygon.get_pixels(nside=nside_sparse)]
+    # # valid_map = mdet_mask & polygon
+    # poly_coverage_pixels = hpg.query_polygon(
+    #     nside_coverage,
+    #     polygon.ra,
+    #     polygon.dec,
+    #     nest=True,
+    #     inclusive=True,
+    #     return_pixel_ranges=False,
+    # )
+
+    # valid_map = poly_map & mdet_mask  # NOTE: the order is important here!
+
+    valid_map = extractor(mdet_mask, polygon)
+
+    return valid_map
+
+
+def get_tile_area(tile, band, shear=None, pizza_slices_dir="", des_pizza_slices_dir="", mdet_mask=None):
+    print(f"computing effective tile area for {tile}/{band}")
+    # wcs = load_wcs(
+    #     tile,
+    #     band,
+    #     pizza_slices_dir=pizza_slices_dir,
+    #     des_pizza_slices_dir=des_pizza_slices_dir,
+    # )
+    # match shear:
+    #     case "plus":
+    #         applied_shear = galsim.Shear(g1=0.02, g2=0.00)
+    #     case "minus":
+    #         applied_shear = galsim.Shear(g1=-0.02, g2=0.00)
+    #     case _:
+    #         applied_shear = galsim.Shear(g1=0.00, g2=0.00)
+
+    # ra_vertices = [
+    #     wcs.toWorld(galsim.PositionD(250, 0).shear(applied_shear)).ra.deg,
+    #     wcs.toWorld(galsim.PositionD(9750, 0).shear(applied_shear)).ra.deg,
+    #     wcs.toWorld(galsim.PositionD(9750, 0).shear(applied_shear)).ra.deg,
+    #     wcs.toWorld(galsim.PositionD(250, 0).shear(applied_shear)).ra.deg,
+    # ]
+    # dec_vertices = [
+    #     wcs.toWorld(galsim.PositionD(0, 250).shear(applied_shear)).dec.deg,
+    #     wcs.toWorld(galsim.PositionD(0, 250).shear(applied_shear)).dec.deg,
+    #     wcs.toWorld(galsim.PositionD(0, 9750).shear(applied_shear)).dec.deg,
+    #     wcs.toWorld(galsim.PositionD(0, 9750).shear(applied_shear)).dec.deg,
+    # ]
+
+    # hsp_polygon = healsparse.Polygon(
+    #     ra=ra_vertices,
+    #     dec=dec_vertices,
+    #     value=1,
+    # )
+    # nside_sparse = mdet_mask.nside_sparse
+    # valid_area = np.sum(
+    #      mdet_mask[hsp_polygon.get_pixels(nside=nside_sparse)],
+    # ) * hpg.nside_to_pixel_area(nside_sparse, degrees=True)
+
+    valid_map = get_tile_mask(tile, band, shear=shear, pizza_slices_dir=pizza_slices_dir, des_pizza_slices_dir=des_pizza_slices_dir, mdet_mask=mdet_mask)
+    # nside_sparse = mdet_mask.nside_sparse
+    # valid_area = np.sum(
+    #      valid_mask,
+    # ) * hpg.nside_to_pixel_area(nside_sparse, degrees=True)
+    valid_area = valid_map.get_valid_area(degrees=True)
     print(f"effective tile area for {tile}/{band}: {valid_area:.3f} deg^2")
 
     return valid_area
@@ -94,6 +173,8 @@ def gather_sims(imsim_path):
     pairs = {}
     for tile_dir in tile_dirs:
         tile = tile_dir.stem
+        # if tile != "DES0000-0250":
+        #     continue
         pairs[tile] = {}
 
         seed_dirs = tile_dir.glob("*")
