@@ -191,6 +191,7 @@ def main():
         f"stamp.shear.g1={g1:2.2f}",
         f"stamp.shear.g2={g2:2.2f}",
         f"output.tilename={tile_name}",
+        f"eval_variables.seastlake_seed={seed}",
     ]
 
     if args.test:

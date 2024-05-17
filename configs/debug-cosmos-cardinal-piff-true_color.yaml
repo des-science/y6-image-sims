@@ -85,6 +85,7 @@ eval_variables:
     - 0.
     - '$float((@gal.rotate).rad)'
     index: '@current_obj_type_index'
+  seastlake_seed: null
 
 input:
   # catalog_sampler:
@@ -97,9 +98,10 @@ input:
   desgal:
     file_name:
         type: FormattedStr
-        format: /pscratch/sd/b/beckermr/cosmos_simcat_%s_seed10.fits
+        format: /pscratch/sd/b/beckermr/cosmos_simcat_v2_%s_seed%s.fits
         items:
         - "@output.tilename"
+        - "$eastlake_seed"
     cuts:
         x_sim: [250, 9750]
         y_sim: [250, 9750]
@@ -233,7 +235,7 @@ output:
   noise_mode: from_weight
   add_bkg: False
   grid_objects: False
-  nproc: 32
+  nproc: 64
 
   #Save weight and badpix extensions too
   badpixfromfits:
