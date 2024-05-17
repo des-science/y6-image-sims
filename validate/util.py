@@ -173,8 +173,6 @@ def gather_sims(imsim_path):
     pairs = {}
     for tile_dir in tile_dirs:
         tile = tile_dir.stem
-        # if tile != "DES0000-0250":
-        #     continue
         pairs[tile] = {}
 
         seed_dirs = tile_dir.glob("*")

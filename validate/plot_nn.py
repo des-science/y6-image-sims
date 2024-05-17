@@ -49,8 +49,9 @@ def accumulate_pair(*, pdict, mdict, tile, bins, mdet_mask):
     del matcher_p, indices_p, distances_p
 
     hist_p, _ = np.histogram(dnn_p, bins=bins)
+    del dnn_p
 
-    tile_area_p = util.get_tile_area(
+    tile_map_p = util.get_tile_mask(
         tile,
         "r",
         shear="plus",
@@ -58,6 +59,20 @@ def accumulate_pair(*, pdict, mdict, tile, bins, mdet_mask):
         des_pizza_slices_dir=os.environ["IMSIM_DATA"],
         mdet_mask=mdet_mask,
     )
+    tile_area_p = tile_map_p.get_valid_area(degrees=True)
+
+    n_sample_p = np.sum(cuts_p)
+
+    rand_ra_p, rand_dec_p = healsparse.make_uniform_randoms(tile_map_p, n_sample_p)
+    del tile_map_p
+
+    rand_matcher_p = smatch.Matcher(rand_ra_p, rand_dec_p)
+    rand_indices_p, rand_distances_p = rand_matcher_p.query_knn(rand_matcher_p.lon, rand_matcher_p.lat, k=2, return_distances=True)
+    rand_dnn_p = rand_distances_p[:, 1] * 60 * 60
+    del rand_matcher_p, rand_indices_p, rand_distances_p
+
+    rand_hist_p, _ = np.histogram(rand_dnn_p, bins=bins)
+    del rand_dnn_p
 
     # minus
     fminus = mdict["catalog"]
@@ -71,77 +86,32 @@ def accumulate_pair(*, pdict, mdict, tile, bins, mdet_mask):
     del matcher_m, indices_m, distances_m
 
     hist_m, _ = np.histogram(dnn_m, bins=bins)
+    del dnn_m
 
-    tile_area_m = util.get_tile_area(
+    tile_map_m = util.get_tile_mask(
         tile,
         "r",
         shear="minus",
-        pizza_slices_dir=mdict["pizza_slices_dir"],
-        des_pizza_slices_dir=os.environ["IMSIM_DATA"],
-        mdet_mask=mdet_mask,
-    )
-
-    return hist_p, tile_area_p, hist_m, tile_area_m
-
-
-def accumulate_pair_random(*, pdict, mdict, tile, bins, mdet_mask):
-    # plus
-    fplus = pdict["catalog"]
-
-    data_p = load_file(fplus)
-    cuts_p = selections.get_selection(data_p)
-
-    tile_mask_p = util.get_tile_mask(
-        tile,
-        "r",
-        shear="plus",
         pizza_slices_dir=pdict["pizza_slices_dir"],
         des_pizza_slices_dir=os.environ["IMSIM_DATA"],
         mdet_mask=mdet_mask,
     )
-    tile_area_p = tile_mask_p.get_valid_area(degrees=True)
-
-    n_sample_p = np.sum(cuts_p)
-
-    ra_p, dec_p = healsparse.make_uniform_randoms(tile_mask_p, n_sample_p)
-    del tile_mask_p
-
-    matcher_p = smatch.Matcher(ra_p, dec_p)
-    indices_p, distances_p = matcher_p.query_knn(matcher_p.lon, matcher_p.lat, k=2, return_distances=True)
-    dnn_p = distances_p[:, 1] * 60 * 60
-    del matcher_p, indices_p, distances_p
-
-    hist_p, _ = np.histogram(dnn_p, bins=bins)
-
-    # minus
-    fminus = mdict["catalog"]
-
-    data_m = load_file(fminus)
-
-    cuts_m = selections.get_selection(data_m)
-
-    tile_mask_m = util.get_tile_mask(
-        tile,
-        "r",
-        shear="minus",
-        pizza_slices_dir=mdict["pizza_slices_dir"],
-        des_pizza_slices_dir=os.environ["IMSIM_DATA"],
-        mdet_mask=mdet_mask,
-    )
-    tile_area_m = tile_mask_m.get_valid_area(degrees=True)
+    tile_area_m = tile_map_m.get_valid_area(degrees=True)
 
     n_sample_m = np.sum(cuts_m)
 
-    ra_m, dec_m = healsparse.make_uniform_randoms(tile_mask_m, n_sample_m)
-    del tile_mask_m
+    rand_ra_m, rand_dec_m = healsparse.make_uniform_randoms(tile_map_m, n_sample_m)
+    del tile_map_m
 
-    matcher_m = smatch.Matcher(ra_m, dec_m)
-    indices_m, distances_m = matcher_m.query_knn(matcher_m.lon, matcher_m.lat, k=2, return_distances=True)
-    dnn_m = distances_m[:, 1] * 60 * 60
-    del matcher_m, indices_m, distances_m
-    hist_m, _ = np.histogram(dnn_m, bins=bins)
+    rand_matcher_m = smatch.Matcher(rand_ra_m, rand_dec_m)
+    rand_indices_m, rand_distances_m = rand_matcher_m.query_knn(rand_matcher_m.lon, rand_matcher_m.lat, k=2, return_distances=True)
+    rand_dnn_m = rand_distances_m[:, 1] * 60 * 60
+    del rand_matcher_m, rand_indices_m, rand_distances_m
 
-    return hist_p, tile_area_p, hist_m, tile_area_m
+    rand_hist_m, _ = np.histogram(rand_dnn_m, bins=bins)
+    del rand_dnn_m
+
+    return hist_p, rand_hist_p, tile_area_p, hist_m, rand_hist_m, tile_area_m
 
 
 def get_args():
@@ -259,46 +229,25 @@ def main():
     print(f"Processing {len(jobs)} paired simulations")
 
     hist_p = np.zeros(len(bins) - 1)
-    hist_m = np.zeros(len(bins) - 1)
+    rand_hist_p = np.zeros(len(bins) - 1)
     area_p = 0
+    hist_m = np.zeros(len(bins) - 1)
+    rand_hist_m = np.zeros(len(bins) - 1)
     area_m = 0
     with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
         # d = par(jobs)
         for res in par(jobs):
             hist_p += res[0]
-            area_p += res[1]
-            hist_m += res[2]
-            area_m += res[3]
+            rand_hist_p += res[1]
+            area_p += res[2]
+            hist_m += res[3]
+            rand_hist_m += res[4]
+            area_m += res[5]
 
     # hist_sims = np.nanmean([hist_p, hist_m], axis=0)
     # hist_sims /= np.nanmean([area_p, area_m])
     hist_sims = np.nanmean([hist_p / area_p, hist_m / area_m], axis=0)
-
-
-    jobs = [
-        joblib.delayed(accumulate_pair_random)(pdict=sims["plus"], mdict=sims["minus"], tile=tile, bins=bins, mdet_mask=mdet_mask)
-        for tile, seeds in pairs.items()
-        for seed, sims in seeds.items()
-    ]
-    if args.fast:
-        jobs = jobs[:2]
-    print(f"Processing {len(jobs)} paired simulations")
-
-    hist_p_rand = np.zeros(len(bins) - 1)
-    hist_m_rand = np.zeros(len(bins) - 1)
-    area_p_rand = 0
-    area_m_rand = 0
-    with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
-        # d = par(jobs)
-        for res in par(jobs):
-            hist_p_rand += res[0]
-            area_p_rand += res[1]
-            hist_m_rand += res[2]
-            area_m_rand += res[3]
-
-    # hist_sims = np.nanmean([hist_p, hist_m], axis=0)
-    # hist_sims /= np.nanmean([area_p, area_m])
-    hist_rand = np.nanmean([hist_p_rand / area_p_rand, hist_m_rand / area_m_rand], axis=0)
+    hist_rand = np.nanmean([rand_hist_p / area_p, rand_hist_m / area_m], axis=0)
 
     # fig, axs = plt.subplots(1, 3)
     # fig = plt.figure(figsize=(9, 3))
@@ -361,7 +310,7 @@ def main():
         # hist_rand / hist_rand.sum(),
         hist_rand,
         edges=bins,
-        color="k",
+        color="gray",
         label="rand",
     )
     axs[0, 0].stairs(
@@ -372,7 +321,7 @@ def main():
         label="sims",
     )
     axs[0, 0].set_xlabel("nearest neighbor distance [arcsec]")
-    axs[0, 0].set_ylabel("$counts / deg^2$")
+    axs[0, 0].set_ylabel("source density [$counts / deg^2$]")
     axs[0, 0].legend(loc="upper left")
     axs[0, 0].set_xscale("log")
     axs[0, 0].xaxis.set_major_formatter(ticker.ScalarFormatter())
