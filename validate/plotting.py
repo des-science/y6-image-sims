@@ -7,6 +7,7 @@ from cycler import cycler
 import matplotlib as mpl
 import matplotlib.cbook as cbook
 import matplotlib.colors as mcolors
+import matplotlib.collections as mcoll
 import matplotlib.image as mimage
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
@@ -78,6 +79,10 @@ MAX_WIDTH = 8.5
 MAX_HEIGHT = 11
 
 
+def cm_to_in(l, /):
+    return l / 2.54
+
+
 #------#
 # Axes #
 #------#
@@ -108,6 +113,7 @@ def make_axes(
 
     logger.info(f"making figure of size ({fig_width}, {fig_height})")
     fig = plt.figure(figsize=(fig_width, fig_height))
+    fig.patch.set_alpha(0)
     # fig = mfigure.Figure(figsize=(fig_width, fig_height))
 
     fig_width, fig_height = fig.get_size_inches()
@@ -326,6 +332,17 @@ def mesh(
 
 def get_bin_centers(bins):
     return 0.5 * (bins[:-1] + bins[1:])
+
+
+def contour1d(axs, data, bins, *, smoothing=1, **kwargs):
+    bin_centers = get_bin_centers(bins)
+    lines = axs.plot(
+        bin_centers,
+        gaussian_filter(data, sigma=smoothing),
+        **kwargs
+    )
+
+    return lines
 
 
 def contour(axs, data, bins, *, smoothing=1, **kwargs):

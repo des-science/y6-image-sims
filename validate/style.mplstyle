@@ -22,6 +22,8 @@ lines.linestyle  : -
 lines.linewidth: 0.8
 lines.markersize: 1
 
+patch.linewidth: 0.8
+
 scatter.marker: .
 
 # legend.fontsize : 12

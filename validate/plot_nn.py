@@ -300,21 +300,18 @@ def main():
 
     if args.mdet:
         axs[0, 0].stairs(
-            # hist / hist.sum(),
             hist,
             edges=bins,
             color=plotting.mdet_color,
             label="mdet",
         )
     axs[0, 0].stairs(
-        # hist_rand / hist_rand.sum(),
         hist_rand,
         edges=bins,
         color="gray",
         label="rand",
     )
     axs[0, 0].stairs(
-        # hist_sims / hist_sims.sum(),
         hist_sims,
         edges=bins,
         color=plotting.sims_color,
@@ -328,6 +325,7 @@ def main():
     # axs[0, 0].xaxis.set_minor_formatter(ticker.ScalarFormatter())
     # axs[0, 0].set_yscale("log")
     axs[0, 0].grid()
+    axs[0, 0].set_ylim(0, None)
 
     fig.suptitle(config_name)
 
