@@ -88,8 +88,9 @@ srun_call="srun --exclusive --cpu-bind=cores --nodes=1 --ntasks=1 --output=logs/
 
 $srun_call python eastlake/task.py \
     --verbosity 1 \
-    --resume \
-    --shear 0.02 0.00 \
+    --attempt_resume \
+    --g1 0.02 \
+    --g2 0.00 \
     $config \
     $tile \
     $seed \
@@ -98,8 +99,9 @@ $srun_call python eastlake/task.py \
 
 $srun_call python eastlake/task.py \
     --verbosity 1 \
-    --resume \
-    --shear -0.02 0.00 \
+    --attempt_resume \
+    --g1 -0.02 \
+    --g2 0.00 \
     $config \
     $tile \
     $seed \

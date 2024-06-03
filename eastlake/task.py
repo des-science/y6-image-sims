@@ -39,9 +39,9 @@ def get_args():
         help="verbosity [int; 1]",
     )
     parser.add_argument(
-        "--resume",
+        "--attempt_resume",
         action="store_true",
-        help="flag to resume previous run",
+        help="flag to attempt resumption of previous run",
     )
     parser.add_argument(
         "--test",
@@ -54,54 +54,85 @@ def get_args():
         help="do a dry run without running anything",
     )
 
-    parser.add_argument(
-        "--shear",
-        type=float,
-        nargs=2,
-        required=False,
-        default=None,
-        help="shear to apply (g1, g2) [float; None]",
-    )
-    parser.add_argument(
-        "--redshift",
-        type=float,
-        nargs=2,
-        required=False,
-        default=None,
-        help="redshift range in which to apply shear [float; None]",
-    )
-
-    # shear_group = parser.add_argument_group("shear")
-    # shear_group.add_argument(
-    #     "--g1",
+    # parser.add_argument(
+    #     "--shear",
     #     type=float,
-    #     required=False,
-    #     default=0.,
-    #     help="shear along g1 axis [float; 0.]",
-    # )
-    # shear_group.add_argument(
-    #     "--g2",
-    #     type=float,
-    #     required=False,
-    #     default=0.,
-    #     help="shear along g2 axis [float; 0.]",
-    # )
-
-    # redshift_group = parser.add_argument_group("redshift")
-    # redshift_group.add_argument(
-    #     "--zmin",
-    #     type=float,
+    #     nargs=2,
     #     required=False,
     #     default=None,
-    #     help="lower limit of redshift range in which to apply shear [float; None]",
+    #     help="shear to apply (g1, g2) [float; None]",
     # )
-    # redshift_group.add_argument(
-    #     "--zmax",
+    # parser.add_argument(
+    #     "--redshift",
     #     type=float,
+    #     nargs=2,
     #     required=False,
     #     default=None,
-    #     help="upper limit of redshift range in which to apply shear [float; None]",
+    #     help="redshift range in which to apply shear [float; None]",
     # )
+
+    shear_group = parser.add_argument_group("shear")
+    shear_group.add_argument(
+        "--shear_slice",
+        action="store_true",
+        help="apply shear in redshift slice",
+    )
+    shear_group.add_argument(
+        "--g1",
+        type=float,
+        required=False,
+        default=0.,
+        help="shear along g1 axis [float; 0.]",
+    )
+    shear_group.add_argument(
+        "--g2",
+        type=float,
+        required=False,
+        default=0.,
+        help="shear along g2 axis [float; 0.]",
+    )
+    shear_group.add_argument(
+        "--g1_slice",
+        type=float,
+        required=False,
+        default=0.,
+        help="shear along g1 axis inside of redshift slice [float; 0.]",
+    )
+    shear_group.add_argument(
+        "--g2_slice",
+        type=float,
+        required=False,
+        default=0.,
+        help="shear along g2 axis inside of redshift slice [float; 0.]",
+    )
+    shear_group.add_argument(
+        "--g1_other",
+        type=float,
+        required=False,
+        default=0.,
+        help="shear along g1 axis outside of redshift slice [float; 0.]",
+    )
+    shear_group.add_argument(
+        "--g2_other",
+        type=float,
+        required=False,
+        default=0.,
+        help="shear along g2 axis outside of redshift slice [float; 0.]",
+    )
+    shear_group.add_argument(
+        "--zlow",
+        type=float,
+        required=False,
+        default=0.,
+        help="lower limit of redshift slice which to apply shear [float; 0.]",
+    )
+    shear_group.add_argument(
+        "--zhigh",
+        type=float,
+        required=False,
+        default=3.,
+        help="upper limit of redshift slice which to apply shear [float; 3.]",
+    )
 
     return parser.parse_args()
 
@@ -117,64 +148,29 @@ def main():
     print(f"config: {config_name}")
     print(f"tile: {tile_name}")
 
-    if args.shear is not None:
-        g1 = args.shear[0]
-        g2 = args.shear[1]
+    shear_slice = args.shear_slice
+    if not shear_slice:
+        g1 = args.g1
+        g2 = args.g2
     else:
-        g1 = 0.00
-        g2 = 0.00
+        g1_slice = args.g1_slice
+        g2_slice = args.g2_slice
+        g1_other = args.g1_other
+        g2_other = args.g2_other
+        zlow = args.zlow
+        zhigh = args.zhigh
+        if (zlow < 0) or (zlow >= zhigh):
+            raise ValueError(f"Invalid redshift range")
 
-    # if args.seed is not None:
-    #     seed = args.seed
-    # else:
-    #     hash = hashlib.sha256()
-    #     hash.update(config_name.encode("UTF-8"))
-    #     hash.update(tile_name.encode("UTF-8"))
-
-    #     seed = int(
-    #         hash.hexdigest(),
-    #         16
-    #     ) & 0xFFFFFFFF
 
     seed = args.seed
     if seed < 0:
         raise ValueError(f"Invalid seed")
     print(f"seed: {seed}")
 
-    # output_path = Path(
-    #     os.environ.get("SCRATCH", ".")
-    # ) / "y6-image-sims" / config_name / tile_name / str(seed)
-    # output_path = Path(args.output) / config_name / tile_name / str(seed)
     output_path = Path(args.output)
 
-    # if args.redshift is not None:
-    #     zmin = args.redshift[0]
-    #     zmax = args.redshift[1]
-    #     if zmin >= zmax:
-    #         raise ValueError(f"Invalid redshift range")
-
-    #     output_path /= f"g1={g1:2.2f}_g2={g2:2.2f}_zmin={zmin:2.2f}_zmax={zmax:2.2f}"
-    # if (args.zmin is not None) and (args.zmax is not None):
-    #     zmin = args.zmin
-    #     zmax = args.zmax
-    #     if zmin >= zmax:
-    #         raise ValueError(f"Invalid redshift range")
-    #     output_path /= f"g1={g1:2.2f}_g2={g2:2.2f}_zmin={zmin:2.2f}_zmax={zmax:2.2f}"
-    # else:
-    #     output_path /= f"g1={g1:2.2f}_g2={g2:2.2f}"
-
-    if args.redshift is not None:
-        zmin = args.redshift[0]
-        zmax = args.redshift[1]
-        if zmin >= zmax:
-            raise ValueError(f"Invalid redshift range")
-
-        # output_path /= f"g1={g1:2.2f}_g2={g2:2.2f}_zmin={zmin:2.2f}_zmax={zmax:2.2f}"
-    # else:
-    #     output_path /= f"g1={g1:2.2f}_g2={g2:2.2f}"
-
     print(f"output: {output_path}")
-
     print(f"config: {config_path}")
 
     job_record = output_path / "job_record.pkl"
@@ -188,11 +184,21 @@ def main():
         "--seed", str(seed),
         config_path,
         output_path,
-        f"stamp.shear.g1={g1:2.2f}",
-        f"stamp.shear.g2={g2:2.2f}",
         f"output.tilename={tile_name}",
         f"eval_variables.seastlake_seed={seed}",
     ]
+
+    if not shear_slice:
+        process_args.append(f"stamp.shear.g1={g1}")
+        process_args.append(f"stamp.shear.g2={g2}")
+    else:
+        process_args.append(f"stamp.shear.g1_slice={g1_slice}")
+        process_args.append(f"stamp.shear.g2_slice={g2_slice}")
+        process_args.append(f"stamp.shear.g1_other={g1_other}")
+        process_args.append(f"stamp.shear.g2_other={g2_other}")
+        process_args.append(f"stamp.shear.zlow={zlow}")
+        process_args.append(f"stamp.shear.zhigh={zhigh}")
+
 
     if args.test:
         process_args.append(f"pizza_cutter.n_jobs=8")
@@ -202,7 +208,7 @@ def main():
         process_args.append(f"output.bands=r")
         process_args.append(f"pipeline.steps=[galsim_montara, pizza_cutter, metadetect]")
 
-    if args.resume:
+    if args.attempt_resume:
         if job_resumable:
             process_args.append("--resume")
         else:

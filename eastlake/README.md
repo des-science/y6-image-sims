@@ -2,7 +2,7 @@
 
 `task.py` -- run a single eastlake simulation
 ```
-python eastlake/task.py --verbosity 1 --resume --shear 0.02 0.00 $config $tile $seed ${output}/plus
+python eastlake/task.py --verbosity 1 --attempt_resume --g1 0.02 --g2 0.00 $config $tile $seed ${output}/plus
 ```
 note: use `--dry-run` to check the commands without running anything
 
