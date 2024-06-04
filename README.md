@@ -24,6 +24,10 @@ script for generating list of seeds for each tile
 
 scripts for running image simulations with eastlake
 
+## [campaigns](./campaigns/README.md)
+
+scripts for image simulation campaigns
+
 ## [postprocess](./postprocess/README.md)
 
 create a concatenated hdf5 file of the metadetect catalogs for the image simulations
