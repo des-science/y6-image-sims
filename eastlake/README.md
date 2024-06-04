@@ -2,7 +2,7 @@
 
 `task.py` -- run a single eastlake simulation
 ```
-usage: task.py [-h] [--verbosity VERBOSITY] [--attempt_resume] [--test] [--dry-run] [--shear_slice] [--g1 G1] [--g2 G2] [--g1_slice G1_SLICE] [--g2_slice G2_SLICE] [--g1_other G1_OTHER] [--g2_other G2_OTHER] [--zlow ZLOW] [--zhigh ZHIGH]
+usage: task.py [-h] [--verbosity VERBOSITY] [--attempt-resume] [--test] [--dry-run] [--shear_slice] [--g1 G1] [--g2 G2] [--g1_slice G1_SLICE] [--g2_slice G2_SLICE] [--g1_other G1_OTHER] [--g2_other G2_OTHER] [--zlow ZLOW] [--zhigh ZHIGH]
                config tile seed output
 
 positional arguments:
@@ -15,7 +15,7 @@ options:
   -h, --help            show this help message and exit
   --verbosity VERBOSITY
                         verbosity [int; 1]
-  --attempt_resume      attempt resumption from job record
+  --attempt-resume      attempt resumption from job record
   --test                run a smaller scale test
   --dry-run             do a dry run without running anything
 

@@ -38,7 +38,7 @@ def get_args():
         help="verbosity [int; 1]",
     )
     parser.add_argument(
-        "--attempt_resume",
+        "--attempt-resume",
         action="store_true",
         help="attempt resumption from job record",
     )
