@@ -41,7 +41,7 @@ def get_args():
     parser.add_argument(
         "--attempt_resume",
         action="store_true",
-        help="flag to attempt resumption of previous run",
+        help="attempt resumption from job record",
     )
     parser.add_argument(
         "--test",
@@ -173,11 +173,6 @@ def main():
     print(f"output: {output_path}")
     print(f"config: {config_path}")
 
-    job_record = output_path / "job_record.pkl"
-    job_resumable = job_record.is_file()
-    if job_resumable:
-        print(f"job record found: {job_record}")
-
     process_args = [
         "run-eastlake-sim",
         "--verbosity", str(args.verbosity),
@@ -209,7 +204,10 @@ def main():
         process_args.append(f"pipeline.steps=[galsim_montara, pizza_cutter, metadetect]")
 
     if args.attempt_resume:
+        job_record = output_path / "job_record.pkl"
+        job_resumable = job_record.is_file()
         if job_resumable:
+            print(f"job record found: {job_record}")
             process_args.append("--resume")
         else:
             print(f"could not find job record; running from the top")
