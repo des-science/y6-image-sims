@@ -15,7 +15,7 @@ options:
   -h, --help            show this help message and exit
   --verbosity VERBOSITY
                         verbosity [int; 1]
-  --attempt_resume      attempt resumption from job record
+  --attempt-resume      attempt resumption from job record
   --test                run a smaller scale test
   --dry-run             do a dry run without running anything
 
