@@ -8,6 +8,10 @@ utilities, scripts, and configs for running [eastlake](https://github.com/des-sc
  - star catalogs: `/global/cfs/projectdirs/des/atong/y6kp-shear/starsim/catalogs/`
  - input cosmos catalog: `/global/cfs/cdirs/des/y3-image-sims/input_cosmos_v4.fits`
 
+## [environments](./environments/README.md)
+
+configs for conda environments
+
 ## [tiles](./tiles/README.md)
 
 scripts for querying lists of DES tiles via easyaccess
