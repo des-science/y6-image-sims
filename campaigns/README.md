@@ -1,5 +1,13 @@
 # campaigns
 
+| config | # tiles | constant shear | redshift shear | mdet | bfd |
+|---|---|---|---|---|---|
+| fiducial | 1000 | ✓ | ✓ | ✓ | ✓ |
+| no_stars| 400 | ✓ | | ✓ | ✓ |
+| median_color | 400 | ✓ | | ✓ | |
+| grid_median_color| 400 | ✓ | | ✓ | |
+| grid | 400 | ✓ | | | ✓ |
+
 This is an in-progress place to hold onto the submission scripts for the final calibration campaigns.
 
 ## [calibration](./calibration/)
