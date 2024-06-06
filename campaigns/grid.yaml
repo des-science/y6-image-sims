@@ -18,7 +18,7 @@ pipeline:
     - delete_sources
 
 fitvd:
-  conda_prefix: "/global/common/software/des/mambaforge/envs/des-y6-fitvd"
+  conda_prefix: "$os.environ['FITVD_ENV']"
   n_jobs: 128
   det_band: "r"
   bands: ["g", "r", "i", "z"]

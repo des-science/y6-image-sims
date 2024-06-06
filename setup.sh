@@ -13,6 +13,7 @@ export DESREMOTE_RSYNC=smau@desar2.cosmology.illinois.edu::ALLDESFiles/new_archi
 # used for meds download, eastlake, etc.
 export IMSIM_DATA=/global/cfs/cdirs/desbalro
 export MEDS_DIR=/global/cfs/cdirs/desbalro
+export FITVD_ENV=/global/common/software/des/mambaforge/envs/des-y6-fitvd
 # export PYTHONPATH=~/software/galsim_extra:$PYTHONPATH
 # export PYTHONPATH=~/software/montara:$PYTHONPATH
 
