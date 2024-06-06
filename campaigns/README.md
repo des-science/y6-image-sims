@@ -1,6 +1,6 @@
 # campaigns
 
-| config | # tiles | constant shear | redshift shear | mdet | bfd | description | ≈ node hours / tile / shear | ≈ node hours |
+| config | # tiles | constant shear (2) | redshift shear (10) | mdet | bfd | description | ≈ node hours / tile / shear | ≈ node hours |
 |---|---|---|---|---|---|---|---|---|
 | [fiducial](fiducial.yaml) | 1000 | ✓ | ✓ | ✓ | ✓ | full-featured image simulation | 4 | 48,000 |
 | [no_stars](no_stars.yaml) | 400 | ✓ | | ✓ | ✓ | no stars are simulated (flux set to 0) | 4 | 3,200 |
