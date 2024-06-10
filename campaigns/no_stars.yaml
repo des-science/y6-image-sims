@@ -211,7 +211,7 @@ stamp:
   shear:
     type: G1G2_zslice
     zlow: 0.
-    zhigh: 3.
+    zhigh: 6.
     z: {type: Eval,
       str: "-1 if object_type_list[@obj_num-start_obj_num]=='star' else z_gal",
       fz_gal: { type: DESGalValue, col: "$z_col" }
