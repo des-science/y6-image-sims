@@ -78,7 +78,7 @@ $srun_call python eastlake/task.py \
     --g1_other 0.00 \
     --g2_other 0.00 \
     --zlow 0.0 \
-    --zhigh 3.0 \
+    --zhigh 6.0 \
     $config \
     $tile \
     $seed \
@@ -94,7 +94,7 @@ $srun_call python eastlake/task.py \
     --g1_other 0.00 \
     --g2_other 0.00 \
     --zlow 0.0 \
-    --zhigh 3.0 \
+    --zhigh 6.0 \
     $config \
     $tile \
     $seed \
@@ -254,7 +254,7 @@ $srun_call python eastlake/task.py \
     --g1_other -0.02 \
     --g2_other 0.00 \
     --zlow 2.7 \
-    --zhigh 3.0 \
+    --zhigh 6.0 \
     $config \
     $tile \
     $seed \
