@@ -219,6 +219,13 @@ cd ../
 #Actually run BFD :P
 python -u ./BFD_pipeline/run_bfd.py --config ./tmp_config.yaml --output_label _BFD > logbfd_${TILENAME}
 
+found_file=$(find ./SOF/ -type f -name "*sof.fits")
+file_name=$(basename "$found_file")
+new_file_name="${file_name//"sof"/"bfd"}"
+
+echo "GETTING NEW FILE NAME"
+echo $new_file_name
+
 #Transfer over!
 ifdh cp -D logbfd_${TILENAME} ${OUTPUT}
-ifdh cp targets/*BFD.fits ${OUTPUT}
+ifdh cp targets/*BFD.fits ${OUTPUT}/${new_file_name}
