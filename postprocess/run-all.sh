@@ -22,6 +22,8 @@ if [[ ! $shear ]]; then
 fi
 echo "shear: ${shear}"
 
+run=$(basename ${config} .yaml)
+
 source setup.sh
 
 echo "running step_00_make_flist"
@@ -39,3 +41,25 @@ echo "done"
 echo "running step_03_make_hdf5"
 bash postprocess/step_03_make_hdf5.sh -c ${config} -s ${shear}
 echo "done"
+
+echo "cleaning up..."
+
+output_flist=${run}-${shear}_flist.txt
+if [[ ! -f ${output_flist} ]]; then
+    echo "flist not found!"
+    echo "expected ${output_flist}"
+    exit
+else
+    echo "removing ${output_flist}"
+    rm ${output_flist}
+fi
+
+output_uids=${run}-${shear}_uids.yaml
+if [[ ! -f ${output_uids} ]]; then
+    echo "uids not found!"
+    echo "expected ${output_uids}"
+    exit
+else
+    echo "removing ${output_uids}"
+    rm ${output_uids}
+fi
