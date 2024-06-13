@@ -15,7 +15,7 @@ import weights
 
 def get_grid(data, ngrid):
 
-    dgrid = 1e4 / ngrid
+    dgrid = 10_000 / ngrid
     xind = np.floor(data["x"] / dgrid)
     yind = np.floor(data["y"] / dgrid)
     gind = yind * ngrid + xind
@@ -171,6 +171,21 @@ def get_args():
         nargs="+",
         help="Tratio cut [float]",
     )
+    parser.add_argument(
+        "--resample",
+        type=str,
+        required=False,
+        default="jackknife",
+        choices=["jackknife", "bootstrap"],
+        help="Resample method [str]",
+    )
+    parser.add_argument(
+        "--grid",
+        type=int,
+        required=False,
+        default=1,
+        help="How many patches in the subgrid [int]",
+    )
     return parser.parse_args()
 
 
@@ -181,6 +196,9 @@ def main():
     mfracs = args.mfrac
     s2ns = args.s2n
     Tratios = args.Tratio
+
+    grid = args.grid
+    resample = args.resample
 
     pairs = {}
 
@@ -220,30 +238,50 @@ def main():
         for s2n in s2ns:
             for mfrac in mfracs:
                 jobs = [
-                    joblib.delayed(grid_file_pair)(fplus=pfile, fminus=mfile, ngrid=10, Tratio=Tratio, s2n=s2n, mfrac=mfrac)
+                    joblib.delayed(grid_file_pair)(fplus=pfile, fminus=mfile, ngrid=grid, Tratio=Tratio, s2n=s2n, mfrac=mfrac)
                     for seed in pairs.values()
                     for pfile, mfile in seed.values()
                 ]
                 print(f"Processing {len(jobs)} paired simulations ({ntiles} tiles)")
 
                 with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
-                    d = par(jobs)
+                    data = par(jobs)
 
-                d = np.concatenate(d, axis=0)
+                data = np.concatenate(data, axis=0)
 
-                ns = 1000  # number of bootstrap resamples
-                rng = np.random.RandomState(seed=args.seed)
+                print(f"Computing uncertainties via {resample}")
+                if resample == "bootstrap":
+                    ns = 1000  # number of bootstrap resamples
+                    rng = np.random.RandomState(seed=args.seed)
 
-                m_mean, c_mean_1, c_mean_2 = compute_shear_pair(d)
+                    m_mean, c_mean_1, c_mean_2 = compute_shear_pair(data)
 
-                print(f"Bootstrapping with {ns} resamples")
-                bootstrap = []
-                for i in tqdm.trange(ns, ncols=80):
-                    rind = rng.choice(d.shape[0], size=d.shape[0], replace=True)
-                    bootstrap.append(compute_shear_pair(d[rind]))
+                    print(f"Bootstrapping with {ns} resamples")
+                    bootstrap = []
+                    for i in tqdm.trange(ns, ncols=80):
+                        rind = rng.choice(data.shape[0], size=data.shape[0], replace=True)
+                        _bootstrap = data[rind]
+                        bootstrap.append(compute_shear_pair(_bootstrap))
 
-                bootstrap = np.array(bootstrap)
-                m_std, c_std_1, c_std_2 = np.std(bootstrap, axis=0)
+                    bootstrap = np.array(bootstrap)
+                    m_std, c_std_1, c_std_2 = np.std(bootstrap, axis=0)
+
+                elif resample == "jackknife":
+                    jackknife = []
+                    for i in tqdm.trange(len(data), ncols=80):
+                        _pre = data[:i]
+                        _post = data[i + 1:]
+                        _jackknife = np.concatenate((_pre, _post))
+                        jackknife.append(compute_shear_pair(_jackknife))
+
+                    _n = len(jackknife)
+                    # m_mean, c_mean_1, c_mean_2 = np.mean(jackknife, axis=0)
+                    jackknife_mean = np.mean(jackknife, axis=0)
+                    # jackknife_var = ((_n - 1) / _n) * np.sum(np.square(np.subtract(jackknife, jackknife_mean)), axis=0)
+                    jackknife_std = np.sqrt(((_n - 1) / _n) * np.sum(np.square(np.subtract(jackknife, jackknife_mean)), axis=0))
+
+                    m_mean, c_mean_1, c_mean_2 = jackknife_mean
+                    m_std, c_std_1, c_std_2 = jackknife_std
 
                 # print("\v")
                 # print("m:	(%0.3e, %0.3e)" % (m_mean - m_std * 3, m_mean + m_std * 3))
