@@ -185,7 +185,7 @@ def main():
 
     # fig, axs = plt.subplots(1, len(bands), squeeze=False, sharex="row", sharey="row")
     fig, axs = plotting.make_axes(
-        1, 4,
+        2, 4,
         width=2,
         height=2,
         x_margin=1,
@@ -193,8 +193,8 @@ def main():
         margin_top=1,
         gutter=1,
         fig_width=13,
-        fig_height=3.5,
-        sharex="row",
+        fig_height=6,
+        sharex="all",
         sharey="row",
     )
 
@@ -244,40 +244,6 @@ def main():
         # hist_sims /= np.nanmean([area_p, area_m])
         hist_sims = np.nanmean([hist_p / area_p, hist_m / area_m], axis=0)
 
-        # fig, axs = plt.subplots(1, 3)
-        # fig = plt.figure(figsize=(9, 3))
-        # h = [
-        #     Size.Fixed(1),
-        #     Size.Fixed(2),
-        #     Size.Fixed(1/8),
-        #     Size.Fixed(1/8),
-        #     Size.Fixed(6/8),
-        #     Size.Fixed(2),
-        #     Size.Fixed(1/8),
-        #     Size.Fixed(1/8),
-        #     Size.Fixed(6/8),
-        #     Size.Fixed(2),
-        #     Size.Fixed(1/8),
-        #     Size.Fixed(1/8),
-        #     Size.Fixed(6/8),
-        # ]
-        # v = [
-        #     Size.Fixed(0.5),
-        #     Size.Fixed(2),
-        #     Size.Fixed(0.5),
-        # ]
-        # divider = Divider(fig, (0, 0, 1, 1), h, v, aspect=False)
-
-        # ax = fig.add_axes(
-        #     divider.get_position(),
-        #     axes_locator=divider.new_locator(nx=1, ny=1)
-        # )
-        # cax = fig.add_axes(
-        #     divider.get_position(),
-        #     axes_locator=divider.new_locator(nx=3, ny=1)
-        # )
-        # ax.cax = cax
-
         ax = axs[0, i]
         ax.stairs(
             hist,
@@ -291,11 +257,22 @@ def main():
             color=plotting.sims_color,
             label="sims",
         )
-        ax.set_xlabel(format_band(band))
+        # ax.set_xlabel(format_band(band))
         ax.set_ylabel(f"$counts / deg^2$")
         ax.set_yscale("log")
         if i == 0:
             ax.legend(loc="upper left")
+        ax.grid()
+
+        ax = axs[1, i]
+        ax.stairs(
+            hist_sims / hist,
+            edges=bins,
+            color=plotting.sims_color,
+        )
+        ax.set_xlabel(format_band(band))
+        ax.set_ylabel(f"sims / mdet")
+        # ax.set_yscale("log")
         ax.grid()
 
     fig.suptitle(config_name)
