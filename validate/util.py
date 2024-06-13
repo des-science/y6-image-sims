@@ -163,6 +163,17 @@ def load_mdet_mask(fname="/dvs_ro/cfs/cdirs/des/y6-shear-catalogs/y6-combined-hl
     return hmap
 
 
+def gather_inputs():
+    inputs = []
+    input_base = Path("/pscratch/sd/b/beckermr/")
+    for input_path in input_base.glob("cosmos_simcat_v6_DES[0-9]*[+-][0-9]*_seed[0-9]*.fits"):
+        input_file = input_path.as_posix()
+        print(input_file)
+        inputs.append(input_file)
+
+    return inputs
+
+
 def gather_sims(imsim_path):
     imsim_path = Path(imsim_path)
     config_name = imsim_path.name
