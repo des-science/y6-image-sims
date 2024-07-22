@@ -23,6 +23,12 @@ The name of the environment can be different than that of the lockfile.
 
 These files were generated via `conda list --explicit` on the envs at NERSC on 2024-07-19.
 
+To create the environment, run
+
+```bash
+conda create --name <env> --file <this file>
+```
+
 ## v1 conda environment files
 
 note: an older version of numpy was required for running fitvd as done by desdm; specifically,
