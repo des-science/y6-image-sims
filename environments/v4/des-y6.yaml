@@ -1,0 +1,73 @@
+name: des-y6
+channels:
+  - conda-forge
+platforms:
+  - osx-arm64
+  - linux-64
+  - osx-64
+dependencies:
+  - astropy
+  - cfitsio
+  - click
+  - curl
+  - des-desmeds
+  - des-despyastro
+  - des-despyfits
+  - des-despymisc
+  - des-eastlake>=0.9.0
+  - des-easyaccess
+  - des-montara
+  - des-pixcorrect
+  - des-pizza-cutter
+  - des-pizza-cutter-masking
+  - des-pizza-cutter-metadetect
+  - des-pizza-patches
+  - des-sxdes
+  - des-y6utils
+  - esutil
+  - fftw
+  - fitsio
+  - galsim_extra
+  - galsim=2.4
+  - h5py
+  - hdf5
+  - healpy
+  - healsparse
+  - hilbertcurve
+  - hpgeom
+  - ipykernel
+  - ipython
+  - jinja2
+  - joblib
+  - lsstdesc-coord
+  - matplotlib-base
+  - meds
+  - metadetect
+  - ngmix
+  - nomkl
+  - numba
+  - numexpr
+  - numpy<2
+  - openblas
+  - oracle-instant-client  # [linux64]
+  - oracle-instant-client  # [osx64]
+  - pandas
+  - pillow
+  - pip
+  - pixmappy
+  - psfex
+  - pyarrow
+  - pytables
+  - pytest
+  - pytest-runner
+  - python=3.11
+  - pyyaml
+  - requests
+  - scikit-learn
+  - scipy
+  - sep
+  - setuptools
+  - tomli
+  - tqdm
+  - treecorr
+  - treegp
