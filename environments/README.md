@@ -8,7 +8,7 @@ use need to use `conda-lock` with the `*.lock` files.
 To generate the lock files, use the following command:
 
 ```bash
-python lock-des-envs.py v3/<name of env>.yaml
+python lock-des-envs.py v<N>/<name of env>.yaml
 ```
 
 To create an environment from a lock file, use this command:

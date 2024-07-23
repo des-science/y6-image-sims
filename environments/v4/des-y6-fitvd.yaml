@@ -1,0 +1,11 @@
+name: des-y6-fitvd
+channels:
+  - conda-forge
+platforms:
+  # - osx-arm64 deps not on osx-arm64 yet
+  - linux-64
+  - osx-64
+dependencies:
+  - des-fitvd
+  - shredx
+  - numpy=1.23.5
