@@ -21,6 +21,7 @@ from pizza_cutter_metadetect.masks import get_slice_bounds
 
 
 import plotting
+import util
 
 
 def read_meds(fname):
@@ -73,6 +74,12 @@ def get_args():
         help="Image simulation output directory",
     )
     parser.add_argument(
+        "--band",
+        type=str,
+        default="r",
+        help="DES bandpass",
+    )
+    parser.add_argument(
         "--save",
         action="store_true",
         help="whether to save the plot",
@@ -81,6 +88,11 @@ def get_args():
         "--mask",
         action="store_true",
         help="whether to overplot the mask",
+    )
+    parser.add_argument(
+        "--source",
+        action="store_true",
+        help="whether to overplot the source",
     )
     parser.add_argument(
         "--truth",
@@ -92,6 +104,11 @@ def get_args():
         action="store_true",
         help="whether to zoom the axes",
     )
+    parser.add_argument(
+        "--detection",
+        action="store_true",
+        help="whether to plot detections",
+    )
     return parser.parse_args()
 
 
@@ -100,9 +117,12 @@ def main():
     args = get_args()
 
     imsim_path = Path(args.imsim_dir)
-    config_name = imsim_path.name
+    shear = imsim_path.parts[-1]
+    seed = imsim_path.parts[-2]
+    tilename = imsim_path.parts[-3]
+    config = imsim_path.parts[-4]
 
-    band = "r"
+    band = args.band
 
     for tile_dir in (imsim_path / "des-pizza-slices-y6").glob("DES*"):
         tile = tile_dir.stem
@@ -111,6 +131,12 @@ def main():
             fname_mask = imsim_path / "des-pizza-slices-y6" / tile / "metadetect" / f"{tile}_metadetect-config_mdetcat_part0000-mask.fits.fz"
         if args.truth:
             fname_truth = imsim_path / "truth_files" / f"{tile}-truthfile.fits"
+        if args.detection:
+            fname_detection = imsim_path / "des-pizza-slices-y6" / tile / "metadetect" / f"{tile}_metadetect-config_mdetcat_part0000.fits"
+
+        if args.source:
+            fname_source_stars = f"/dvs_ro/cfs/projectdirs/des/atong/y6kp-shear/starsim/catalogs/merged_y6/{tile}.fits"
+            fname_source_gals = f"/pscratch/sd/b/beckermr/cosmos_simcat_v7_{tile}_seed{seed}.fits"
 
     if not (
         os.path.exists(fname_coadd)
@@ -130,40 +156,96 @@ def main():
         mask = fitsio.read(fname_mask)
     if args.truth:
         truth = fitsio.read(fname_truth)
-        truth = truth[(truth["band"] == band)]
-        truth_stars = truth[(truth["obj_type"] == "s")]
-        truth_gals = truth[(truth["obj_type"] == "g")]
+
+        band_selection = (truth["band"] == band)
+        star_selection = (truth["obj_type"] == "s")
+        gal_selection = (truth["obj_type"] == "g")
+
+        truth_stars = truth[star_selection & band_selection]
+        truth_gals = truth[gal_selection & band_selection]
+
+    if args.source:
+        wcs = util.load_wcs(tile, band=band)
+
+        source_stars = fitsio.read(fname_source_stars)
+        source_stars_selection = (source_stars["imag"] < 25.)
+        source_stars = source_stars[source_stars_selection]
+        source_stars_x, source_stars_y = wcs.radecToxy(source_stars["ra"], source_stars["dec"], units="deg")
+        source_stars_imag = source_stars["imag"]
+
+        # source_gals = fitsio.read(fname_source_gals)
+        # source_gals_selection = (
+        #     (source_gals["x_sim"] >= 250)
+        #     & (source_gals["x_sim"] < 9750)
+        #     & (source_gals["y_sim"] >= 250)
+        #     & (source_gals["y_sim"] < 9750)
+        #     & (source_gals["mag_i_red_sim"] >= 15.)
+        #     & (source_gals["mag_i_red_sim"] < 25.4)
+        #     & (source_gals["bdf_hlr"] >= 0.)
+        #     & (source_gals["bdf_hlr"] < 5.)
+        #     & (source_gals["isgal"] == 1)
+        #     & (source_gals["mask_flags"] == 0)
+        # )
+        # source_gals = source_gals[source_gals_selection]
+        # source_gals_x, source_gals_y = wcs.radecToxy(source_gals["ra"], source_gals["dec"], units="deg")
+        # source_gals_imag = source_gals["imag"]
+
+        source_gaia = fitsio.read("/global/cfs/cdirs/desbalro/des-pizza-slices-y6/DES0105-5040/sources-g/OPS_Taiga/cal/cat_tile_gaia/v1/DES0105-5040_GAIA_DR2_v1.fits")
+        source_gaia_x, source_gaia_y = wcs.radecToxy(source_gaia["RA"], source_gaia["DEC"], units="deg")
+        source_gaia_G = source_gaia["PHOT_G_MEAN_MAG"]
+
+    if args.detection:
+        detection = fitsio.read(fname_detection)
+        detection = detection[detection["mdet_step"] == "noshear"]
 
 
     plotting.setup()
 
-    fig, axs = plotting.make_axes(
-        1, 1,
-        width=2,
-        height=2,
-        x_margin=1,
-        y_margin=0.5,
-        gutter=1,
-        fig_width=4,
-        fig_height=3,
-    )
+    # fig, axs = plotting.make_axes(
+    #     1, 1,
+    #     width=2,
+    #     height=2,
+    #     x_margin=1,
+    #     y_margin=0.5,
+    #     gutter=1,
+    #     fig_width=4,
+    #     fig_height=3,
+    # )
+    fig, axs = plt.subplots(1, 1, squeeze=False)
 
     plotting.imshow(axs[0, 0], np.arcsinh(coadd), origin="lower")
     axs[0, 0].set_xlabel("x_coadd [pixels]")
     axs[0, 0].set_ylabel("y_coadd [pixels]")
-    if args.truth:
-        axs[0, 0].scatter(truth_stars["x_coadd"], truth_stars["y_coadd"], s=6, c="b")
-        axs[0, 0].scatter(truth_gals["x_coadd"], truth_gals["y_coadd"], s=6, c="k")
+    axs[0, 0].set_title(f"{tile} {band}")
+    fig.suptitle(f"{config}")
+
     if args.mask:
         plotting.imshow(axs[0, 0], np.arcsinh(mask), origin="lower", cmap="Reds", alpha=0.5)
-    # axs[0, 0].set_title(f"{config_name}")
+    if args.truth:
+        axs[0, 0].scatter(truth_stars["x_coadd"], truth_stars["y_coadd"], s=24, marker="x", c="k")
+        axs[0, 0].scatter(truth_gals["x_coadd"], truth_gals["y_coadd"], s=6, c="b")
+    if args.source:
+        axs[0, 0].scatter(source_stars_x, source_stars_y, s=24, c="k", marker="x")
+        for x, y, imag in zip(source_stars_x, source_stars_y, source_stars_imag):
+            axs[0, 0].text(x, y, round(imag), c="w", horizontalalignment="left", verticalalignment="bottom")
+
+        # axs[0, 0].scatter(source_gaia_x, source_gaia_y, s=24, c="k", marker="x")
+        # for x, y, G in zip(source_gaia_x, source_gaia_y, source_gaia_G):
+        #     axs[0, 0].text(x, y, round(G), c="k", horizontalalignment="left", verticalalignment="bottom")
+
+    if args.detection:
+        axs[0, 0].scatter(detection["x"], detection["y"], s=48, c="w", marker="+")
+        # for x, y, imag in zip(source_stars_x, source_stars_y, source_stars_imag):
+        #     axs[0, 0].text(x, y, round(imag), c="w", horizontalalignment="left", verticalalignment="bottom")
 
     if args.zoom:
         axs[0, 0].set_xlim(4500, 5500)
         axs[0, 0].set_ylim(4500, 5500)
 
     if args.save:
-        fig.savefig("cutout.pdf")
+        fig.savefig("cutout.png")
+        for i, image in enumerate(axs[0, 0].images):
+            image.write_png(f"{tile}-{band}-{i}.png")
 
     plt.show()
 

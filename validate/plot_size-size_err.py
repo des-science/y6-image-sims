@@ -96,8 +96,10 @@ def main():
     imsim_path = Path(args.imsim_dir)
     config_name = imsim_path.name
 
-    pairs = util.gather_sims(args.imsim_dir)
-    ntiles = len([p for p in pairs.values() if p])
+    # pairs = util.gather_sims(args.imsim_dir)
+    # ntiles = len([p for p in pairs.values() if p])
+
+    catalogs = util.gather_catalogs(imsim_path)
 
 
     # bins = (

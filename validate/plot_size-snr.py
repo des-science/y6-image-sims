@@ -24,8 +24,9 @@ import selections
 
 NBINS = 100
 BINS = {
-    "logsnr": np.linspace(0.5, 2.5, NBINS),
-    "logsize": np.linspace(-0.1, 0.4, NBINS),
+    "logsnr": np.linspace(0, 5, NBINS),
+    # "logsize": np.linspace(-0.1, 0.4, NBINS),
+    "size": np.linspace(-1, 1, NBINS),
 }
 
 
@@ -35,33 +36,58 @@ def compute_logsnr(data, mask):
     logsnr = np.log10(snr)
 
     return logsnr
+    # return snr
 
 
-def compute_logsize(data, mask):
+def compute_size(data, mask):
 
-    T_ratio = data[f"gauss_T_ratio"][mask]
-    psf_T = data[f"gauss_psf_T"][mask]
+    # T_ratio = data[f"gauss_T_ratio"][mask]
+    # psf_T = data[f"gauss_psf_T"][mask]
 
-    size = T_ratio * psf_T
+    # size = T_ratio * psf_T
 
-    logsize = np.log10(1 + size)
+    # logsize = np.log10(1 + size)
 
-    return logsize
+    # return logsize
+
+    # return np.log10(T_ratio)
+
+    # T_ratio = data[f"gauss_T_ratio"][mask]
+    T_ratio = data[f"pgauss_T"][mask] / data[f"pgauss_psf_T"][mask]
+    return T_ratio
 
 
-def load_file(fname):
+def load_file(fname, cuts=False):
     fits = fitsio.FITS(fname)
     w = fits[1].where("mdet_step == \"noshear\"")
+    # w = fits[1].where("mdet_step == \"noshear\" && mdet_flags == 0")
     data = fits[1][w]
+    if cuts:
+        inds, = np.where(
+            (data['psfrec_flags'] == 0) &
+            (data['gauss_flags'] == 0) &
+            (data['gauss_s2n'] > 5) &
+            (data['pgauss_T_flags'] == 0) &
+            (data['pgauss_s2n'] > 5) &
+            (data['pgauss_band_flux_flags_g'] == 0) &
+            (data['pgauss_band_flux_flags_r'] == 0) &
+            (data['pgauss_band_flux_flags_i'] == 0) &
+            (data['pgauss_band_flux_flags_z'] == 0) &
+            (data['mask_flags'] == 0) &
+            (data['shear_bands'] == '123')
+        )
+        data = data[inds]
+        data = des_y6utils.mdet.add_extinction_correction_columns(data)
 
-    mask = selections.get_selection(data)
+    # mask = selections.get_selection(data)
 
-    return data[mask]
+    # return data[mask]
+    return data
 
 
 def size_snr_hist(data, mask, bins):
     value_x = compute_logsnr(data, mask)
-    value_y = compute_logsize(data, mask)
+    value_y = compute_size(data, mask)
     hist, _, _ = np.histogram2d(value_x, value_y, bins=bins)
     # hist, _, _, _ = stats.binned_statistic_2d(
     #     value_x,
@@ -74,15 +100,22 @@ def size_snr_hist(data, mask, bins):
 
 
 
-def accumulate_pair(*, pdict, mdict, tile, bins, mdet_mask):
-    fplus = pdict["catalog"]
-    fminus = mdict["catalog"]
+def accumulate_pair(dset_plus, dset_minus, *, tile, bins, mdet_mask):
+    # fplus = pdict["catalog"]
+    # fminus = mdict["catalog"]
 
-    data_p = load_file(fplus)
-    data_m = load_file(fminus)
+    # data_p = load_file(fplus)
+    # data_m = load_file(fminus)
 
-    cuts_p = selections.get_selection(data_p)
-    cuts_m = selections.get_selection(data_m)
+    # cuts_p = selections.get_selection(data_p)
+    # cuts_m = selections.get_selection(data_m)
+
+    data_p = load_file(dset_plus)
+    data_m = load_file(dset_minus)
+    cuts_p = slice(-1)
+    cuts_m = slice(-1)
+    # cuts_p = data_p["mdet_flags"] == 0
+    # cuts_m = data_m["mdet_flags"] == 0
 
     hist_p = size_snr_hist(data_p, cuts_p, bins)
     hist_m = size_snr_hist(data_m, cuts_m, bins)
@@ -91,16 +124,12 @@ def accumulate_pair(*, pdict, mdict, tile, bins, mdet_mask):
         tile,
         "r",
         shear="plus",
-        pizza_slices_dir=pdict["pizza_slices_dir"],
-        des_pizza_slices_dir=os.environ["IMSIM_DATA"],
         mdet_mask=mdet_mask,
     )
     tile_area_m = util.get_tile_area(
         tile,
         "r",
         shear="minus",
-        pizza_slices_dir=mdict["pizza_slices_dir"],
-        des_pizza_slices_dir=os.environ["IMSIM_DATA"],
         mdet_mask=mdet_mask,
     )
 
@@ -143,9 +172,11 @@ def main():
     imsim_path = Path(args.imsim_dir)
     config_name = imsim_path.name
 
-    pairs = util.gather_sims(args.imsim_dir)
+    # pairs = util.gather_sims(args.imsim_dir)
 
-    ntiles = len([p for p in pairs.values() if p])
+    # ntiles = len([p for p in pairs.values() if p])
+
+    catalogs = util.gather_catalogs(imsim_path)
 
     hf = h5py.File(
         "/dvs_ro/cfs/projectdirs/des/y6-shear-catalogs/Y6A2_METADETECT_V6/metadetect_cutsv6_all_blinded.h5",
@@ -175,29 +206,44 @@ def main():
         sharey="row",
     )
 
-    bins = (BINS["logsnr"], BINS["logsize"])
+    bins = (BINS["logsnr"], BINS["size"])
 
     hist = np.zeros(
         (len(bins[0]) - 1, len(bins[1]) - 1)
     )
-    for sl in dset["patch_num"].iter_chunks():
-        print(f"reading slice {sl} of mdet")
-        _hist = size_snr_hist(dset, sl, bins)
-        # hist += _hist
-        hist = np.nansum([hist, _hist], axis=0)
-
-        # if args.fast:
-        #     break
-
+    # TODO
+    # for sl in dset["patch_num"].iter_chunks():
+    #     print(f"reading slice {sl} of mdet")
+    #     _hist = size_snr_hist(dset, sl, bins)
+    #     # hist += _hist
+    #     hist = np.nansum([hist, _hist], axis=0)
+    #
+    # TODO
+    mdet_area = 0
+    for _mdet_file in Path("/global/cfs/cdirs/des/y6-shear-catalogs/Y6A2_METADETECT_V6_UNBLINDED/tiles/").glob("*.fits"):
+        _d = load_file(_mdet_file, cuts=True)
+        _cuts = slice(-1)
+        _hist = size_snr_hist(_d, _cuts, bins)
+        hist += _hist
+        tile_name = _mdet_file.name.split("_")[0]
+        _tile_area = util.get_tile_area(
+            tile_name,
+            "r",
+            mdet_mask=mdet_mask,
+        )
+        mdet_area += _tile_area
+    # TODO
     hist /= mdet_area
 
+    # jobs = [
+    #     joblib.delayed(accumulate_pair)(pdict=sims["plus"], mdict=sims["minus"], tile=tile, bins=bins, mdet_mask=mdet_mask)
+    #     for tile, seeds in pairs.items()
+    #     for seed, sims in seeds.items()
+    # ]
     jobs = [
-        joblib.delayed(accumulate_pair)(pdict=sims["plus"], mdict=sims["minus"], tile=tile, bins=bins, mdet_mask=mdet_mask)
-        for tile, seeds in pairs.items()
-        for seed, sims in seeds.items()
-    ]
-    if args.fast:
-        jobs = jobs[:2]
+            joblib.delayed(accumulate_pair)(catalogs[tile]["plus"], catalogs[tile]["minus"], tile=tile, bins=bins, mdet_mask=mdet_mask)
+            for tile in catalogs.keys()
+        ]
     print(f"Processing {len(jobs)} paired simulations")
 
     hist_p = np.zeros((len(bins[0]) - 1, len(bins[1]) - 1))
@@ -303,8 +349,10 @@ def main():
     )
     plotting.add_colorbar(ax, pcm, label="$counts / deg^2$")
     contours = plotting.contour(ax, hist, bins, norm=norm, levels=levels, cmap=cmap_mdet)
+    # ax.set_xlabel("$S/N$")
     ax.set_xlabel("$\\log_{10}(S/N)$")
-    ax.set_ylabel("$\\log_{10}(1 + T)$")
+    # ax.set_ylabel("$\\log_{10}(1 + T)$")
+    ax.set_ylabel("$T/T_{PSF}$")
     # legend_elements, _ = contours.legend_elements()
     # legend_labels = [
     #     # f"${{{p * 100:.2f}}} \\%$"
@@ -318,7 +366,7 @@ def main():
     #     loc="upper left",
     # )
     ax.set_title("mdet")
-    ax.grid()
+    # ax.grid()
 
     # ax = fig.add_axes(
     #     divider.get_position(),
@@ -342,6 +390,7 @@ def main():
     )
     plotting.add_colorbar(ax, pcm, label="$counts / deg^2$")
     contours = plotting.contour(ax, hist_sims, bins, norm=norm, levels=levels, cmap=cmap_sims)
+    # ax.set_xlabel("$S/N$")
     ax.set_xlabel("$\\log_{10}(S/N)$")
     # ax.set_ylabel("$\\log_{10}(1 + T)$")
     # legend_elements, _ = contours.legend_elements()
@@ -382,6 +431,7 @@ def main():
     ax = axs[0, 2]
     contours = plotting.contour(ax, hist, bins, norm=norm, levels=levels, cmap=cmap_mdet)
     contours = plotting.contour(ax, hist_sims, bins, norm=norm, levels=levels, cmap=cmap_sims)
+    # ax.set_xlabel("$S/N$")
     ax.set_xlabel("$\\log_{10}(S/N)$")
     # ax.set_ylabel("$\\log_{10}(1 + T)$")
     ax.grid()
