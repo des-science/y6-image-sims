@@ -7,13 +7,13 @@ modules:
 pipeline:
   steps:
     - galsim_montara
-    # - coadd_nwgint
-    # - swarp
-    # - src_extractor
-    # - desdm_meds
+    - coadd_nwgint
+    - swarp
+    - src_extractor
+    - desdm_meds
     - pizza_cutter
     - metadetect
-    # - fitvd
+    - fitvd
     - delete_images
     - delete_sources
 
@@ -147,8 +147,20 @@ image:
 psf:
   type: DES_Piff
   depixelize: false
-  gi_color: null
-  iz_color: null
+  gi_color:
+    type: Eval
+    str: "mag_g_star - mag_i_star if object_type_list[@obj_num-start_obj_num]=='star' else mag_g_gal - mag_i_gal"
+    fmag_g_gal: { type: DESGalValue, col: "mag_g_red_sim" }
+    fmag_i_gal: { type: DESGalValue, col: "mag_i_red_sim" }
+    fmag_g_star: { type: DESStarValue, col: "gmag" }
+    fmag_i_star: { type: DESStarValue, col: "imag" }
+  iz_color:
+    type: Eval
+    str: "mag_i_star - mag_z_star if object_type_list[@obj_num-start_obj_num]=='star' else mag_i_gal - mag_z_gal"
+    fmag_i_gal: { type: DESGalValue, col: "mag_i_red_sim" }
+    fmag_z_gal: { type: DESGalValue, col: "mag_z_red_sim" }
+    fmag_i_star: { type: DESStarValue, col: "imag" }
+    fmag_z_star: { type: DESStarValue, col: "zmag" }
 
 #No knots
 gal:
@@ -200,17 +212,9 @@ stamp:
     str: "False if object_type_list[@obj_num-start_obj_num]=='star' else True"
   }
   shear:
-    type: G1G2_zslice
-    zlow: 0.
-    zhigh: 6.
-    z: {type: Eval,
-      str: "-1 if object_type_list[@obj_num-start_obj_num]=='star' else z_gal",
-      fz_gal: { type: DESGalValue, col: "$z_col" }
-    }
-    g1_slice: 0.00
-    g2_slice: 0.00
-    g1_other: 0.00
-    g2_other: 0.00
+    type: G1G2
+    g1: 0.00
+    g2: 0.00
   gsparams:
     maximum_fft_size: 32768  # 4 x default=8192
 
@@ -222,7 +226,7 @@ output:
   imsim_data: "$os.environ['IMSIM_DATA']"
   noise_mode: from_weight
   add_bkg: False
-  grid_objects: hex
+  grid_objects: False
   nproc: 64
 
   #Save weight and badpix extensions too
