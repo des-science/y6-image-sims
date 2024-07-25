@@ -50,14 +50,32 @@ def compute_color(data, mask, bands):
     return color
 
 
-def load_file(fname):
+def load_file(fname, cuts=False):
     fits = fitsio.FITS(fname)
     w = fits[1].where("mdet_step == \"noshear\"")
+    # w = fits[1].where("mdet_step == \"noshear\" && mdet_flags == 0")
     data = fits[1][w]
+    if cuts:
+        inds, = np.where(
+            (data['psfrec_flags'] == 0) &
+            (data['gauss_flags'] == 0) &
+            (data['gauss_s2n'] > 5) &
+            (data['pgauss_T_flags'] == 0) &
+            (data['pgauss_s2n'] > 5) &
+            (data['pgauss_band_flux_flags_g'] == 0) &
+            (data['pgauss_band_flux_flags_r'] == 0) &
+            (data['pgauss_band_flux_flags_i'] == 0) &
+            (data['pgauss_band_flux_flags_z'] == 0) &
+            (data['mask_flags'] == 0) &
+            (data['shear_bands'] == '123')
+        )
+        data = data[inds]
+        data = des_y6utils.mdet.add_extinction_correction_columns(data)
 
-    mask = selections.get_selection(data)
+    # mask = selections.get_selection(data)
 
-    return data[mask]
+    # return data[mask]
+    return data
 
 
 def mag_color_hist(data, mask, band_x, bands_y, bins):
@@ -115,15 +133,20 @@ def multiband_hist(data, mask, bands_x, bands_y, bins):
     return hist
 
 
-def accumulate_pair(*, pdict, mdict, tile, bands_x, bands_y, bins, mdet_mask):
-    fplus = pdict["catalog"]
-    fminus = mdict["catalog"]
+# def accumulate_pair(*, pdict, mdict, tile, bands_x, bands_y, bins, mdet_mask):
+def accumulate_pair(dset_plus, dset_minus, *, tile, bands_x, bands_y, bins, mdet_mask):
+    # fplus = pdict["catalog"]
+    # fminus = mdict["catalog"]
 
-    data_p = load_file(fplus)
-    data_m = load_file(fminus)
+    data_p = load_file(dset_plus)
+    data_m = load_file(dset_minus)
 
-    cuts_p = selections.get_selection(data_p)
-    cuts_m = selections.get_selection(data_m)
+    # cuts_p = selections.get_selection(data_p)
+    # cuts_m = selections.get_selection(data_m)
+    cuts_p = slice(-1)
+    cuts_m = slice(-1)
+    # cuts_p = data_p["mdet_flags"] == 0
+    # cuts_m = data_m["mdet_flags"] == 0
 
     hist_p = multiband_hist(data_p, cuts_p, bands_x, bands_y, bins)
     hist_m = multiband_hist(data_m, cuts_m, bands_x, bands_y, bins)
@@ -132,16 +155,12 @@ def accumulate_pair(*, pdict, mdict, tile, bands_x, bands_y, bins, mdet_mask):
         tile,
         "r",
         shear="plus",
-        pizza_slices_dir=pdict["pizza_slices_dir"],
-        des_pizza_slices_dir=os.environ["IMSIM_DATA"],
         mdet_mask=mdet_mask,
     )
     tile_area_m = util.get_tile_area(
         tile,
         "r",
         shear="minus",
-        pizza_slices_dir=mdict["pizza_slices_dir"],
-        des_pizza_slices_dir=os.environ["IMSIM_DATA"],
         mdet_mask=mdet_mask,
     )
 
@@ -195,9 +214,9 @@ def main():
     imsim_path = Path(args.imsim_dir)
     config_name = imsim_path.name
 
-    pairs = util.gather_sims(args.imsim_dir)
-
-    ntiles = len([p for p in pairs.values() if p])
+    # pairs = util.gather_sims(args.imsim_dir)
+    # ntiles = len([p for p in pairs.values() if p])
+    catalogs = util.gather_catalogs(imsim_path)
 
     hf = h5py.File(
         "/dvs_ro/cfs/projectdirs/des/y6-shear-catalogs/Y6A2_METADETECT_V6/metadetect_cutsv6_all_blinded.h5",
@@ -251,21 +270,34 @@ def main():
         hist = np.zeros(
             (len(bins[0]) - 1, len(bins[1]) - 1)
         )
-        for sl in dset["patch_num"].iter_chunks():
-            print(f"reading slice {sl} of mdet")
-            _hist = multiband_hist(dset, sl, bands_x, bands_y, bins)
-            # hist += _hist
-            hist = np.nansum([hist, _hist], axis=0)
-
-            # if args.fast:
-            #     break
+        # TODO
+        # for sl in dset["patch_num"].iter_chunks():
+        #     print(f"reading slice {sl} of mdet")
+        #     _hist = multiband_hist(dset, sl, bands_x, bands_y, bins)
+        #     # hist += _hist
+        #     hist = np.nansum([hist, _hist], axis=0)
+        # TODO
+        mdet_area = 0
+        for _mdet_file in Path("/global/cfs/cdirs/des/y6-shear-catalogs/Y6A2_METADETECT_V6_UNBLINDED/tiles/").glob("*.fits"):
+            _d = load_file(_mdet_file, cuts=True)
+            _cuts = slice(-1)
+            _hist = multiband_hist(_d, _cuts, bands_x, bands_y, bins)
+            hist += _hist
+            tile_name = _mdet_file.name.split("_")[0]
+            _tile_area = util.get_tile_area(
+                tile_name,
+                "r",
+                mdet_mask=mdet_mask,
+                border=False,
+            )
+            mdet_area += _tile_area
+        # TODO
 
         hist /= mdet_area
 
         jobs = [
-            joblib.delayed(accumulate_pair)(pdict=sims["plus"], mdict=sims["minus"], tile=tile, bands_x=bands_x, bands_y=bands_y, bins=bins, mdet_mask=mdet_mask)
-            for tile, seeds in pairs.items()
-            for seed, sims in seeds.items()
+            joblib.delayed(accumulate_pair)(catalogs[tile]["plus"], catalogs[tile]["minus"], tile=tile, bands_x=bands_x, bands_y=bands_y, bins=bins, mdet_mask=mdet_mask)
+            for tile in catalogs.keys()
         ]
         if args.fast:
             jobs = jobs[:2]
