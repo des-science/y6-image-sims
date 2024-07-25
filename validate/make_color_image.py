@@ -55,10 +55,13 @@ def main():
             check=True,
         )
 
+    output_path = f"{image_path}/{tile}-coadd-gri.jpg"
+    output_path_crop = f"{image_path}/{tile}-coadd-gri-crop.jpg"
+
     subprocess.run(
         [
             f"des-make-image-fromfiles",
-            f"{image_path}/{tile}-coadd-gri.jpg",
+            output_path,
             f"{image_path}/{tile}-g.fits.fz",
             f"{image_path}/{tile}-r.fits.fz",
             f"{image_path}/{tile}-i.fits.fz",
@@ -68,6 +71,17 @@ def main():
     os.remove(f"{image_path}/{tile}-g.fits.fz")
     os.remove(f"{image_path}/{tile}-r.fits.fz")
     os.remove(f"{image_path}/{tile}-i.fits.fz")
+
+    subprocess.run(
+        [
+            f"magick",
+            output_path,
+            f"-crop",
+            f"1000x1000+4500+4500",
+            output_path_crop,
+        ],
+        check=True,
+    )
 
 
 if __name__ == "__main__":
