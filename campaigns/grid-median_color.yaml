@@ -91,7 +91,7 @@ input:
   desgal:
     file_name:
         type: FormattedStr
-        format: /pscratch/sd/b/beckermr/cosmos_simcat_v7_%s_seed%s.fits
+        format: /global/cfs/cdirs/desbalro/cosmos_simcat/cosmos_simcat_v7_%s_seed%s.fits
         items:
         - "@output.tilename"
         - "$eastlake_seed"
@@ -105,7 +105,7 @@ input:
   desstar:
     file_name:
         type: FormattedStr
-        format: /dvs_ro/cfs/projectdirs/des/atong/y6kp-shear/starsim/catalogs/merged_y6/%s.fits
+        format: /global/cfs/cdirs/desbalro/starsim/catalogs/merged_y6/%s.fits
         items:
         - "@output.tilename"
     mag_i_max: 25.

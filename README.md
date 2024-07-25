@@ -8,6 +8,10 @@ utilities, scripts, and configs for running [eastlake](https://github.com/des-sc
  - star catalogs: `/global/cfs/projectdirs/des/atong/y6kp-shear/starsim/catalogs/`
  - input cosmos catalog: `/global/cfs/cdirs/des/y3-image-sims/input_cosmos_v4.fits`
 
+- `/global/cfs/cdirs/desbalro/input_cosmos_v4_montara_simcat_v7_seed42.fits` -- cosmos with bright end resampling for deep field image sims
+- `/global/cfs/cdirs/desbalro/cosmos_simcat/` -- per-tile cosmos catalogs with bright end resampling
+- `/global/cfs/cdirs/desbalro/starsim/catalogs/merged_y6/` -- star sim catalogs
+
 ## [environments](./environments/README.md)
 
 configs for conda environments
