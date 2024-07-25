@@ -82,7 +82,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    ${output}/g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=3.0 \
+    ${output}/g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0 \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -98,7 +98,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    ${output}/g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=3.0 \
+    ${output}/g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0 \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -258,7 +258,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    ${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=2.7__zhigh=3.0 \
+    ${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=2.7__zhigh=6.0 \
     &  # run the process in the background so we can execute both job steps in parallel
 
 # wait for each srun job to finish in the background
