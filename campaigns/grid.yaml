@@ -11,8 +11,8 @@ pipeline:
     - swarp
     - src_extractor
     - desdm_meds
-    # - pizza_cutter
-    # - metadetect
+    - pizza_cutter
+    - metadetect
     - fitvd
     - delete_images
     - delete_sources
