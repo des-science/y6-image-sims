@@ -63,7 +63,7 @@ touch $submitted
 echo $tile >> $submitted
 
 # Create the output directory
-output="${SCRATCH}/y6-image-sims/campaigns/calibration/${run}/${tile}/${seed}"
+output="${SCRATCH}/y6-image-sims/campaigns/${run}/${tile}/${seed}"
 echo "Writing output to $output"
 mkdir -p $output
 
