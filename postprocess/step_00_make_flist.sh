@@ -24,7 +24,7 @@ echo "shear: ${shear}"
 
 run=$(basename ${config} .yaml)
 
-input_dir=${SCRATCH}/y6-image-sims/${run}
+input_dir=${SCRATCH}/y6-image-sims/campaigns/${run}
 output_flist=${run}-${shear}_flist.txt
 touch ${output_flist}
 
