@@ -9,19 +9,23 @@ export HOURS=$4
 export DISK=$5
 export SLEEP=$6
 export SHEAR=$7
-export CONFIG=$8
-export RUN_NAME=$9
+export SHEAR_OTHER=$8
+export ZLOW=$9
+export ZHIGH=${10}
+export CONFIG=${11}
+export RUN_NAME=${12}
 
 echo user is $USER
 echo home is $HOME
 echo tilename is $TILENAME NCORES is $NCORES MEMGB ${MEMGB}GB HOURS ${HOURS}h SCRATCH DISK ${DISK}G SLEEP ${SLEEP}s
-echo using SHEAR $SHEAR
+echo using SHEAR $SHEAR AND SHEAR_OTHER $SHEAR_OTHER
+echo using ZLOW $ZLOW AND ZHIGH $ZHIGH
 echo using CONFIG $CONFIG
 echo using NAME $RUN_NAME
 jobsub_submit -G des \
               -e TILENAME \
               -e NCORES \
-              -e SHEAR \
+              -e SHEAR -e SHEAR_OTHER -e ZLOW -e ZHIGH \
               -e CONFIG \
               -e RUN_NAME \
               --memory ${MEMGB}GB \

@@ -29,8 +29,8 @@ echo ${TILENAME}
 echo ${HOME}
 
 git clone https://github.com/des-science/y6-image-sims.git
-cd y6-image-sims; git checkout 1a860ea7b8700da82048f6af666db78a37ace0b1 #Sid's latest commit as per 06/09/2024
-
+#cd y6-image-sims; git checkout 1a860ea7b8700da82048f6af666db78a37ace0b1 #Sid's latest commit as per 06/09/2024
+cd y6-image-sims; git checkout e4b19f419710730c0fbba4eb32a1eb48d9390941 #Sid's latest commit as of 07/26/2024
 
 ####################################################################
 # Make setup file.
@@ -40,11 +40,13 @@ cd y6-image-sims; git checkout 1a860ea7b8700da82048f6af666db78a37ace0b1 #Sid's l
 # during write, so env variable is never referenced.
 #####################################################################
 
+#/cvmfs/des.opensciencegrid.org/fnal/portconda/base311/bin
+
 cat <<EOF > setup.sh
 #!/bin/bash
 
-export PATH=/cvmfs/des.opensciencegrid.org/fnal/portconda/base311/bin:$PATH
-source activate /cvmfs/des.opensciencegrid.org/fnal/portconda/des-y6-nover-env
+export PATH=/cvmfs/des.opensciencegrid.org/fnal/miniforge3/bin:$PATH
+source activate /cvmfs/des.opensciencegrid.org/fnal/stacks/des-y6
 
 export DESDATA=${HOME}/DESDATA
 export DESPROJ=OPS
@@ -90,22 +92,22 @@ source activate /cvmfs/des.opensciencegrid.org/fnal/portconda/des-y6-imsims-newe
 
 for band in g r i z
 do
-    echo "des-pizza-cutter-prep-tile --config meds/des-pizza-slices-y6.yaml --tilename $tile --band $band"
-    des-pizza-cutter-prep-tile --config meds/des-pizza-slices-y6.yaml --tilename ${TILENAME} --band $band &
+    echo "des-pizza-cutter-prep-tile --config meds/des-pizza-slices-y6.yaml --tilename ${TILENAME} --band $band"
+    des-pizza-cutter-prep-tile --config meds/des-pizza-slices-y6.yaml --tilename ${TILENAME} --band $band
 done
 wait  # wait for each band to finish downloading
 
 
 #Now switch to actual Imsims env for rest
 conda deactivate
-source activate /cvmfs/des.opensciencegrid.org/fnal/portconda/des-y6-nover-env
+source activate /cvmfs/des.opensciencegrid.org/fnal/stacks/des-y6
 
 
 echo "I HAVE FINISHED PREPPING"
 ls -lsh
 
-#Figure out what mode we're operating in
-MYPATH=${RUN_NAME}
+#Just set this to some short name so that SWARP doesn't break
+MYPATH=RUN #${RUN_NAME}
 
 echo "I am using ${MYPATH}"
 
@@ -116,20 +118,24 @@ echo "I am using ${MYPATH}"
 
 ifdh cp -D /pnfs/des/persistent/Y6Imsims/input_cosmos_v4.fits .
 ifdh cp -D /pnfs/des/persistent/Y6Imsims/merged_y6/${TILENAME}.fits .
-ifdh cp -D /pnfs/des/persistent/Y6Imsims/input_simcats_v6/cosmos_simcat_v6_${TILENAME}_seed${eastlake_seed}.fits .
+ifdh cp -D /pnfs/des/persistent/Y6Imsims/input_simcats_v7/cosmos_simcat_v7_${TILENAME}_seed${eastlake_seed}.fits .
 
-sed -i -e 's|/dvs_ro/cfs/cdirs/des/y3-image-sims/input_cosmos_v4.fits|/srv/y6-image-sims/input_cosmos_v4.fits|' $CONFIG
-sed -i -e 's|/dvs_ro/cfs/projectdirs/des/atong/y6kp-shear/starsim/catalogs/merged_y6/|/srv/y6-image-sims/|' $CONFIG
-sed -i -e 's|/global/common/software/des/mambaforge/envs/des-y6-fitvd|/cvmfs/des.opensciencegrid.org/fnal/portconda/des-y6-fitvd-env|' $CONFIG
-sed -i -e 's|/pscratch/sd/b/beckermr/cosmos_simcat_v7_|/srv/cosmos_simcat_v6_|' $CONFIG
+sed -i -e 's|/dvs_ro/cfs/cdirs/des/y3-image-sims/input_cosmos_v4.fits|/srv/y6-image-sims/input_cosmos_v4.fits|' ./campaigns/$CONFIG
+sed -i -e 's|/dvs_ro/cfs/cdirs/desbalro/starsim/catalogs/merged_y6/|/srv/y6-image-sims/|' ./campaigns/$CONFIG
+sed -i -e 's|$FITVD_ENV|/cvmfs/des.opensciencegrid.org/fnal/portconda/des-y6-fitvd-env|' ./campaigns/$CONFIG
+sed -i -e 's|/dvs_ro/cfs/cdirs/desbalro/cosmos_simcat/cosmos_simcat_v7_|/srv/y6-image-sims/cosmos_simcat_v7_|' ./campaigns/$CONFIG
 
 ###########################
 #RUN THE SIM!
 ###########################
 
-python3 eastlake/task.py --verbosity 0 --g1 ${SHEAR} --g2 0.00 ${CONFIG} ${TILENAME} ${eastlake_seed} ./${MYPATH}
+#python3 eastlake/task.py --verbosity 0 --g1 ${SHEAR} --g2 0.00 ${CONFIG} ${TILENAME} ${eastlake_seed} ./${MYPATH}
 
+python3 eastlake/task.py --verbosity 1 --shear_slice \
+                         --g1_slice ${SHEAR} --g2_slice 0.00 --g1_other ${SHEAR_OTHER} --g2_other 0.00 --zlow ${ZLOW} --zhigh ${ZHIGH} \
+                         ./campaigns/${CONFIG} ${TILENAME} ${eastlake_seed} ./${MYPATH}
 
+ls -lsh "/srv/y6-image-sims/g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0/des-pizza-slices-y6/DES0448-2706/sources-g/OPS_Taiga/multiepoch/Y6A1/r4939/DES0448-2706/p01/coadd"
 cd $MYPATH
 
 
@@ -138,8 +144,8 @@ cd $MYPATH
 #################################
 
 ifdh mkdir /pnfs/des/persistent/users/${USER}/Y6Imsims/${TILENAME}
-ifdh mkdir /pnfs/des/persistent/users/${USER}/Y6Imsims/${TILENAME}/${MYPATH}
-OUTPUT=/pnfs/des/persistent/users/${USER}/Y6Imsims/${TILENAME}/${MYPATH}
+ifdh mkdir /pnfs/des/persistent/users/${USER}/Y6Imsims/${TILENAME}/${RUN_NAME}
+OUTPUT=/pnfs/des/persistent/users/${USER}/Y6Imsims/${TILENAME}/${RUN_NAME}
 
 ifdh cp -D config.yaml ${OUTPUT}
 ifdh cp -D job_record.pkl ${OUTPUT}
@@ -227,5 +233,6 @@ echo "GETTING NEW FILE NAME"
 echo $new_file_name
 
 #Transfer over!
-ifdh cp -D logbfd_${TILENAME} ${OUTPUT}
-ifdh cp targets/*BFD.fits ${OUTPUT}/${new_file_name}
+ifdh mkdir ${OUTPUT}/bfd
+ifdh cp -D logbfd_${TILENAME} ${OUTPUT}/bfd
+ifdh cp targets/*BFD.fits ${OUTPUT}/bfd/${new_file_name}
