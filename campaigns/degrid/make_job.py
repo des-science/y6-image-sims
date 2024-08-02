@@ -27,9 +27,8 @@ with open('./do_Imsims_DES_%d_%d' % (start, end), 'w') as f:
             run_name = "g1_slice=%0.2f__g2_slice=0.00__g1_other=%0.2f__g2_other=0.00__zlow=%0.1f__zhigh=%0.1f" % (g1, g1_other, zlow, zhigh)
             args = {'g1' : g1, 'g1_other' : g1_other, 'zlow' : zlow, 'zhigh' : zhigh, 'tile' : tile, 'run_name' : run_name, 'config' : 'fiducial.yaml'}
         
-            f.write('./jobsub %(tile)s 36 360 20 300 0 %(g1)0.2f %(g1_other)0.2f %(zlow)0.2f %(zhigh)0.2f %(config)s %(run_name)s\n' % args)
+            f.write('./jobsub %(tile)s 12 120 48 400 0 %(g1)0.2f %(g1_other)0.2f %(zlow)0.2f %(zhigh)0.2f %(config)s %(run_name)s\n' % args)
             
             m += 1
 
-            if m == 2: break #Break if we hit 2 runs. So only +/- used
-
+            if m == 12: break #Break if we hit 12 runs. Doing everything together. 
