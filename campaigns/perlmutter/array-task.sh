@@ -63,11 +63,37 @@ touch $submitted
 echo $tile >> $submitted
 
 # Create the output directory
-output="${SCRATCH}/y6-image-sims/campaigns/${run}/${tile}/${seed}"
+output="${SCRATCH}/y6-image-sims/${run}/${tile}/${seed}"
 echo "Writing output to $output"
 mkdir -p $output
 
 srun_call="srun --exclusive --cpu-bind=cores --nodes=1 --ntasks=1 --output=logs/slurm_%A_%a.%s.out --error=logs/slurm_%A_%a.%s.log"
+
+run_1="run_1"
+run_2="run_2"
+run_3="run_3"
+run_4="run_4"
+run_5="run_5"
+run_5="run_5"
+run_6="run_6"
+run_7="run_7"
+run_8="run_8"
+run_9="run_9"
+run_10="run_10"
+run_11="run_11"
+run_12="run_12"
+out_1="g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0"
+out_2="g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0"
+out_3="g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=0.0__zhigh=0.3"
+out_4="g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=0.3__zhigh=0.6"
+out_5="g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=0.6__zhigh=0.9"
+out_6="g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=0.9__zhigh=1.2"
+out_7="g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=1.2__zhigh=1.5"
+out_8="g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=1.5__zhigh=1.8"
+out_9="g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=1.8__zhigh=2.1"
+out_10="g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=2.1__zhigh=2.4"
+out_11="g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=2.4__zhigh=2.7"
+out_12="g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=2.7__zhigh=6.0"
 
 $srun_call python eastlake/task.py \
     --verbosity 1 \
@@ -82,7 +108,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0" \
+    "${output}/${run_1}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -98,7 +124,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0" \
+    "${output}/${run_2}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -114,7 +140,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=0.0__zhigh=0.3" \
+    "${output}/${run_3}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -130,7 +156,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=0.3__zhigh=0.6" \
+    "${output}/${run_4}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -146,7 +172,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=0.6__zhigh=0.9" \
+    "${output}/${run_5}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -162,7 +188,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=0.9__zhigh=1.2" \
+    "${output}/${run_6}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -178,7 +204,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=1.2__zhigh=1.5" \
+    "${output}/${run_7}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -194,7 +220,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=1.5__zhigh=1.8" \
+    "${output}/${run_8}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -210,7 +236,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=1.8__zhigh=2.1" \
+    "${output}/${run_9}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -226,7 +252,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=2.1__zhigh=2.4" \
+    "${output}/${run_10}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -242,7 +268,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=2.4__zhigh=2.7" \
+    "${output}/${run_11}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -258,8 +284,21 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=-0.02__g2_other=0.00__zlow=2.7__zhigh=6.0" \
+    "${output}/${run_12}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 # wait for each srun job to finish in the background
 wait
+
+mv "${output}/${run_1}" "${output}/${out_1}"
+mv "${output}/${run_2}" "${output}/${out_2}"
+mv "${output}/${run_3}" "${output}/${out_3}"
+mv "${output}/${run_4}" "${output}/${out_4}"
+mv "${output}/${run_5}" "${output}/${out_5}"
+mv "${output}/${run_6}" "${output}/${out_6}"
+mv "${output}/${run_7}" "${output}/${out_7}"
+mv "${output}/${run_8}" "${output}/${out_8}"
+mv "${output}/${run_9}" "${output}/${out_9}"
+mv "${output}/${run_10}" "${output}/${out_10}"
+mv "${output}/${run_11}" "${output}/${out_11}"
+mv "${output}/${run_12}" "${output}/${out_12}"

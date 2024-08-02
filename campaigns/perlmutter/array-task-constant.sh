@@ -63,11 +63,16 @@ touch $submitted
 echo $tile >> $submitted
 
 # Create the output directory
-output="${SCRATCH}/y6-image-sims/campaigns/${run}/${tile}/${seed}"
+output="${SCRATCH}/y6-image-sims/${run}/${tile}/${seed}"
 echo "Writing output to $output"
 mkdir -p $output
 
 srun_call="srun --exclusive --cpu-bind=cores --nodes=1 --ntasks=1 --output=logs/slurm_%A_%a.%s.out --error=logs/slurm_%A_%a.%s.log"
+
+run_1="run_1"
+run_2="run_2"
+out_1="g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0"
+out_2="g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0"
 
 $srun_call python eastlake/task.py \
     --verbosity 1 \
@@ -82,7 +87,7 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0" \
+    "${output}/${run_1}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -98,8 +103,11 @@ $srun_call python eastlake/task.py \
     $config \
     $tile \
     $seed \
-    "${output}/g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0" \
+    "${output}/${run_2}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 # wait for each srun job to finish in the background
 wait
+
+mv "${output}/${run_1}" "${output}/${out_1}"
+mv "${output}/${run_2}" "${output}/${out_2}"
