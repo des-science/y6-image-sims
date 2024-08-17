@@ -88,6 +88,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_1}" \
+    && mv "${output}/${run_1}" "${output}/${out_1}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -104,10 +105,9 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_2}" \
+    && mv "${output}/${run_2}" "${output}/${out_2}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 # wait for each srun job to finish in the background
 wait
 
-mv "${output}/${run_1}" "${output}/${out_1}"
-mv "${output}/${run_2}" "${output}/${out_2}"

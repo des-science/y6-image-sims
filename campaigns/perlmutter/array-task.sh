@@ -109,6 +109,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_1}" \
+    && mv "${output}/${run_1}" "${output}/${out_1}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -125,6 +126,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_2}" \
+    && mv "${output}/${run_2}" "${output}/${out_2}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -141,6 +143,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_3}" \
+    && mv "${output}/${run_3}" "${output}/${out_3}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -157,6 +160,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_4}" \
+    && mv "${output}/${run_4}" "${output}/${out_4}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -173,6 +177,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_5}" \
+    && mv "${output}/${run_5}" "${output}/${out_5}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -189,6 +194,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_6}" \
+    && mv "${output}/${run_6}" "${output}/${out_6}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -205,6 +211,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_7}" \
+    && mv "${output}/${run_7}" "${output}/${out_7}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -221,6 +228,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_8}" \
+    && mv "${output}/${run_8}" "${output}/${out_8}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -237,6 +245,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_9}" \
+    && mv "${output}/${run_9}" "${output}/${out_9}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -253,6 +262,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_10}" \
+    && mv "${output}/${run_10}" "${output}/${out_10}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -269,6 +279,7 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_11}" \
+    && mv "${output}/${run_11}" "${output}/${out_11}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 $srun_call python eastlake/task.py \
@@ -285,20 +296,9 @@ $srun_call python eastlake/task.py \
     $tile \
     $seed \
     "${output}/${run_12}" \
+    && mv "${output}/${run_12}" "${output}/${out_12}" \
     &  # run the process in the background so we can execute both job steps in parallel
 
 # wait for each srun job to finish in the background
 wait
 
-mv "${output}/${run_1}" "${output}/${out_1}"
-mv "${output}/${run_2}" "${output}/${out_2}"
-mv "${output}/${run_3}" "${output}/${out_3}"
-mv "${output}/${run_4}" "${output}/${out_4}"
-mv "${output}/${run_5}" "${output}/${out_5}"
-mv "${output}/${run_6}" "${output}/${out_6}"
-mv "${output}/${run_7}" "${output}/${out_7}"
-mv "${output}/${run_8}" "${output}/${out_8}"
-mv "${output}/${run_9}" "${output}/${out_9}"
-mv "${output}/${run_10}" "${output}/${out_10}"
-mv "${output}/${run_11}" "${output}/${out_11}"
-mv "${output}/${run_12}" "${output}/${out_12}"
