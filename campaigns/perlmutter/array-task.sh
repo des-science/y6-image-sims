@@ -3,7 +3,7 @@
 #SBATCH -A des
 #SBATCH -C cpu
 #SBATCH -q regular
-#SBATCH -t 06:00:00
+#SBATCH -t 08:00:00
 #SBATCH --nodes=12
 #SBATCH --ntasks=12
 #SBATCH --ntasks-per-node=1
