@@ -4,6 +4,7 @@ import argparse
 import os
 from pathlib import Path
 import subprocess
+import sys
 
 
 def get_args():
@@ -220,9 +221,12 @@ def main():
     print(f">>>>>>>>")
 
     finished = subprocess.run(process_args)
+    returncode = finished.returncode
 
     print(f"<<<<<<<<")
-    print(f"subprocess completed with status {finished.returncode}")
+    print(f"subprocess completed with status {returncode}")
+
+    sys.exit(returncode)
 
 
 if __name__ == "__main__":
