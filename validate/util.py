@@ -30,7 +30,7 @@ def extractor(m, poly):
 def load_wcs(tilename, band="r"):
     image_paths = list(
         Path(os.environ["IMSIM_DATA"]).glob(
-            f"des-pizza-slices-y6/{tilename}/sources-{band}/OPS_Taiga/multiepoch/Y6A1/*/{tilename}/*/coadd/{tilename}_*_{band}.fits.fz"
+            f"des-pizza-slices-y6/{tilename}/sources-{band}/OPS_Taiga/multiepoch/*/*/{tilename}/*/coadd/{tilename}_*_{band}.fits.fz"
         )
     )
     image_path = image_paths.pop().as_posix()
