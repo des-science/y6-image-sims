@@ -1,3 +1,4 @@
+import logging
 import os
 import functools
 import operator
@@ -9,6 +10,9 @@ import galsim
 import hpgeom as hpg
 import healsparse
 import yaml
+
+
+logger = logging.getLogger(__name__)
 
 
 # thanks @eli
@@ -35,8 +39,8 @@ def load_wcs(tilename, band="r"):
     )
     image_path = image_paths.pop().as_posix()
     if len(image_paths) > 0:
-        print(f"Warning: found multiple images for {tilename}: {image_paths}")
-    print(f"Found following image for {tilename}: {image_path}")
+        logger.warning(f"Warning: found multiple images for {tilename}: {image_paths}")
+    logger.info(f"Found following image for {tilename}: {image_path}")
 
     coadd_header = galsim.fits.FitsHeader(image_path)
     coadd_wcs, origin = galsim.wcs.readFromFitsHeader(coadd_header)
@@ -45,7 +49,7 @@ def load_wcs(tilename, band="r"):
 
 
 def get_tile_mask(tile, band, shear=None, mdet_mask=None, border=True):
-    print(f"computing effective tile mask for {tile}/{band}")
+    logger.info(f"computing effective tile mask for {tile}/{band}")
     wcs = load_wcs(
         tile,
         band=band,
@@ -97,20 +101,20 @@ def get_tile_mask(tile, band, shear=None, mdet_mask=None, border=True):
 
 
 def get_tile_area(tile, band, shear=None, mdet_mask=None, border=True):
-    print(f"computing effective tile area for {tile}/{band}")
+    logger.info(f"computing effective tile area for {tile}/{band}")
     valid_map = get_tile_mask(tile, band, shear=shear, mdet_mask=mdet_mask, border=border)
     # nside_sparse = mdet_mask.nside_sparse
     # valid_area = np.sum(
     #      valid_mask,
     # ) * hpg.nside_to_pixel_area(nside_sparse, degrees=True)
     valid_area = valid_map.get_valid_area(degrees=True)
-    print(f"effective tile area for {tile}/{band}: {valid_area:.3f} deg^2")
+    logger.info(f"effective tile area for {tile}/{band}: {valid_area:.3f} deg^2")
 
     return valid_area
 
 
 def load_mdet_mask(fname="/dvs_ro/cfs/cdirs/des/y6-shear-catalogs/y6-combined-hleda-gaiafull-des-stars-hsmap131k-mdet-v2.hsp"):
-    print(f"loading mdet mask from {fname}")
+    logger.info(f"loading mdet mask from {fname}")
     hmap = healsparse.HealSparseMap.read(
         fname,
     )
@@ -122,7 +126,7 @@ def gather_inputs():
     input_base = Path(os.environ["IMSIM_DATA"]) / "cosmos_simcat"
     for input_path in input_base.glob("cosmos_simcat_v7_DES[0-9]*[+-][0-9]*_seed[0-9]*.fits"):
         input_file = input_path.as_posix()
-        print(input_file)
+        logger.info(input_file)
         inputs.append(input_file)
 
     return inputs
@@ -178,14 +182,11 @@ def gather_inputs():
 def gather_catalogs(imsim_path):
     catalogs = {}
     for catalog_file in (imsim_path / "g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0").glob("*"):
-        tilename = catalog_file.name.split("_")[0]
 
-        catalogs[tilename] = {}
-        catalogs[tilename]["plus"] = str(catalog_file)
+        catalogs["plus"] = str(catalog_file)
 
     for catalog_file in (imsim_path / "g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0").glob("*"):
-        tilename = catalog_file.name.split("_")[0]
-        catalogs[tilename]["minus"] = str(catalog_file)
+        catalogs["minus"] = str(catalog_file)
 
     return catalogs
 
@@ -200,8 +201,8 @@ def get_levels(hist, percentiles=[0.5]):
     #     for percentile in percentiles
     # ])
 
-    print("percentiles:", percentiles)
-    print("levels:", levels)
+    logger.info("percentiles:", percentiles)
+    logger.info("levels:", levels)
 
     return levels
 
