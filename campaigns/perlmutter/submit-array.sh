@@ -40,10 +40,44 @@ run=$(basename $config .yaml)
 submitted="${filename%.*}-${run}-submitted.txt"
 touch $submitted
 
-echo "sbatch --array=${jobs} campaigns/perlmutter/array-task.sh -c ${config} -f ${filename}"
-sbatch --array=${jobs} campaigns/perlmutter/array-task.sh -c ${config} -f ${filename}
+# Create the output directory
+output="${SCRATCH}/y6-image-sims/${run}"
+echo "Writing output to $output"
+mkdir -p $output
 
-# while read tile
-# do
-#     echo $tile >> $submitted
-# done < $filename
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-1.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-1.sh -c ${config} -f ${filename}
+
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-2.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-2.sh -c ${config} -f ${filename}
+
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-3.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-3.sh -c ${config} -f ${filename}
+
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-4.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-4.sh -c ${config} -f ${filename}
+
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-5.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-5.sh -c ${config} -f ${filename}
+
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-6.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-6.sh -c ${config} -f ${filename}
+
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-7.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-7.sh -c ${config} -f ${filename}
+
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-8.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-8.sh -c ${config} -f ${filename}
+
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-9.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-9.sh -c ${config} -f ${filename}
+
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-10.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-10.sh -c ${config} -f ${filename}
+
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-11.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-11.sh -c ${config} -f ${filename}
+
+echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-12.sh -c ${config} -f ${filename}"
+sbatch --array=${jobs} campaigns/perlmutter/array-task-12.sh -c ${config} -f ${filename}
+
