@@ -1,191 +1,104 @@
 import argparse
 from pathlib import Path
-import os
 
-import joblib
 import tqdm
 import numpy as np
-import fitsio
+import h5py
 
-import des_y6utils
-
-import selections
 import weights
-import util
 
 
-def get_grid(data, ngrid):
-
-    dgrid = 10_000 / ngrid
-    xind = np.floor(data["x"] / dgrid)
-    yind = np.floor(data["y"] / dgrid)
-    gind = yind * ngrid + xind
-
-    return gind
+SHEAR_STEPS = ["noshear", "1p", "1m", "2p", "2m"]
 
 
-def load_file(fname, cuts=False):
-    fits = fitsio.FITS(fname)
-    w = fits[1].where("mdet_step == \"noshear\"")
-    # w = fits[1].where("mdet_step == \"noshear\" && mdet_flags == 0")
-    data = fits[1][w]
-    if cuts:
-        inds, = np.where(
-            (data['psfrec_flags'] == 0) &
-            (data['gauss_flags'] == 0) &
-            (data['gauss_s2n'] > 5) &
-            (data['pgauss_T_flags'] == 0) &
-            (data['pgauss_s2n'] > 5) &
-            (data['pgauss_band_flux_flags_g'] == 0) &
-            (data['pgauss_band_flux_flags_r'] == 0) &
-            (data['pgauss_band_flux_flags_i'] == 0) &
-            (data['pgauss_band_flux_flags_z'] == 0) &
-            (data['mask_flags'] == 0) &
-            (data['shear_bands'] == '123')
+def concatenate_catalogs(data):
+    _dp, _dm = np.stack(data, axis=1)
+    dp = {
+        shear_step: np.hstack(
+            [_d[shear_step] for _d in _dp],
         )
-        data = data[inds]
-        data = des_y6utils.mdet.add_extinction_correction_columns(data)
+        for shear_step in SHEAR_STEPS
+    }
+    dm = {
+        shear_step: np.hstack(
+            [_d[shear_step] for _d in _dm],
+        )
+        for shear_step in SHEAR_STEPS
+    }
+    return dp, dm
 
-    # mask = selections.get_selection(data)
 
-    # return data[mask]
-    return data
+def process_file(*, dset, tile):
+    mdet = dset["mdet"]
 
-
-
-def grid_file(*, fname, ngrid):
-    d = fitsio.read(fname)
-    # d = load_file(fname, cuts=False)
-    cuts = d["mdet_flags"] == 0
-    d = d[cuts]
-
-    gind = get_grid(d, ngrid)
-
-    # msk = selections.get_selection(d)
-
-    vals = []
-
-    ugind = np.unique(gind)
-    for _gind in range(ngrid*ngrid):
-        # gmsk = msk & (_gind == gind)
-        gmsk = (_gind == gind)
-        if np.any(gmsk):
-            sval = []
-            for shear in ["noshear", "1p", "1m", "2p", "2m"]:
-                sgmsk = gmsk & (d["mdet_step"] == shear)
-                if np.any(sgmsk):
-                    _d = d[sgmsk]
-                    _w = weights.get_shear_weights(_d)
-                    # sval.append(np.mean(d["gauss_g_1"][sgmsk]))
-                    # sval.append(np.mean(d["gauss_g_2"][sgmsk]))
-                    # sval.append(np.sum(sgmsk))
-                    sval.append(np.average(_d["gauss_g_1"], weights=_w))
-                    sval.append(np.average(_d["gauss_g_2"], weights=_w))
-                    sval.append(np.sum(_w))  # TODO should this be sum(_w) or sum(sgmsk)?
-                else:
-                    sval.append(np.nan)
-                    sval.append(np.nan)
-                    sval.append(np.nan)
-            vals.append(tuple(sval + [_gind]))
+    res = {}
+    for shear_step in SHEAR_STEPS:
+        mdet_cat = mdet[shear_step]
+        in_tile = mdet_cat["tilename"][:] == tile
+        _w = weights.get_shear_weights(mdet_cat, in_tile)
+        n = np.sum(_w)
+        if n > 0:
+            g1 = np.average(mdet_cat["gauss_g_1"][in_tile], weights=_w)
+            g2 = np.average(mdet_cat["gauss_g_2"][in_tile], weights=_w)
         else:
-            vals.append(tuple([np.nan] * 3 * 5 + [_gind]))
+            g1 = np.nan
+            g2 = np.nan
 
-    return np.array(
-        vals,
-        dtype=[
-            ("g1", "f8"),
-            ("g2", "f8"),
-            ("n", "f8"),
-            ("g1_1p", "f8"),
-            ("g2_1p", "f8"),
-            ("n_1p", "f8"),
-            ("g1_1m", "f8"),
-            ("g2_1m", "f8"),
-            ("n_1m", "f8"),
-            ("g1_2p", "f8"),
-            ("g2_2p", "f8"),
-            ("n_2p", "f8"),
-            ("g1_2m", "f8"),
-            ("g2_2m", "f8"),
-            ("n_2m", "f8"),
-            ("grid_ind", "i4")
-        ]
-    )
+        res[shear_step] = np.array(
+            [(n, g1, g2)],
+            dtype=[
+                ("n", "f8"),
+                ("g1", "f8"),
+                ("g2", "f8"),
+            ],
+        )
+    return res
 
 
-# def grid_file_pair(*, fplus, fminus, ngrid, Tratio=0.5, s2n=10, mfrac=0.1):
-#     dp = grid_file(fname=fplus, ngrid=ngrid, Tratio=Tratio, s2n=s2n, mfrac=mfrac)
-#     dm = grid_file(fname=fminus, ngrid=ngrid, Tratio=Tratio, s2n=s2n, mfrac=mfrac)
-# 
-#     assert np.all(dp["grid_ind"] == dm["grid_ind"])
-# 
-#     dt = []
-#     for tail in ["_p", "_m"]:
-#         for name in dp.dtype.names:
-#             if name != "grid_ind":
-#                 dt.append((name + tail, "f8"))
-#     dt.append(("grid_ind", "i4"))
-#     d = np.zeros(ngrid * ngrid, dtype=dt)
-#     for _d, tail in [(dp, "_p"), (dm, "_m")]:
-#         for name in _d.dtype.names:
-#             if name != "grid_ind":
-#                 d[name + tail] = _d[name]
-#     d["grid_ind"] = dp["grid_ind"]
-# 
-#     return d
-def grid_file_pair(dset_plus, dset_minus, *, ngrid=1):
-    dp = grid_file(fname=dset_plus, ngrid=ngrid)
-    dm = grid_file(fname=dset_minus, ngrid=ngrid)
+def process_file_pair(dset_plus, dset_minus, *, tile):
+    dp = process_file(dset=dset_plus, tile=tile)
+    dm = process_file(dset=dset_minus, tile=tile)
 
-    assert np.all(dp["grid_ind"] == dm["grid_ind"])
+    return dp, dm
 
-    dt = []
-    for tail in ["_p", "_m"]:
-        for name in dp.dtype.names:
-            if name != "grid_ind":
-                dt.append((name + tail, "f8"))
-    dt.append(("grid_ind", "i4"))
-    d = np.zeros(ngrid * ngrid, dtype=dt)
-    for _d, tail in [(dp, "_p"), (dm, "_m")]:
-        for name in _d.dtype.names:
-            if name != "grid_ind":
-                d[name + tail] = _d[name]
-    d["grid_ind"] = dp["grid_ind"]
 
-    return d
-
-def compute_shear_pair(d):
-    g1_p = np.nansum(d["g1_p"] * d["n_p"]) / np.nansum(d["n_p"])
-    g1p_p = np.nansum(d["g1_1p_p"] * d["n_1p_p"]) / np.nansum(d["n_1p_p"])
-    g1m_p = np.nansum(d["g1_1m_p"] * d["n_1m_p"]) / np.nansum(d["n_1m_p"])
+def compute_shear_pair(dp, dm):
+    g1_p = np.nansum(dp["noshear"]["g1"] * dp["noshear"]["n"]) / np.nansum(dp["noshear"]["n"])
+    g1p_p = np.nansum(dp["1p"]["g1"] * dp["1p"]["n"]) / np.nansum(dp["1p"]["n"])
+    g1m_p = np.nansum(dp["1m"]["g1"] * dp["1m"]["n"]) / np.nansum(dp["1m"]["n"])
     R11_p = (g1p_p - g1m_p) / 0.02
 
-    g1_m = np.nansum(d["g1_m"] * d["n_m"]) / np.nansum(d["n_m"])
-    g1p_m = np.nansum(d["g1_1p_m"] * d["n_1p_m"]) / np.nansum(d["n_1p_m"])
-    g1m_m = np.nansum(d["g1_1m_m"] * d["n_1m_m"]) / np.nansum(d["n_1m_m"])
+    g1_m = np.nansum(dm["noshear"]["g1"] * dm["noshear"]["n"]) / np.nansum(dm["noshear"]["n"])
+    g1p_m = np.nansum(dm["1p"]["g1"] * dm["1p"]["n"]) / np.nansum(dm["1p"]["n"])
+    g1m_m = np.nansum(dm["1m"]["g1"] * dm["1m"]["n"]) / np.nansum(dm["1m"]["n"])
     R11_m = (g1p_m - g1m_m) / 0.02
 
-    g2_p = np.nansum(d["g2_p"] * d["n_p"]) / np.nansum(d["n_p"])
-    g2p_p = np.nansum(d["g2_2p_p"] * d["n_2p_p"]) / np.nansum(d["n_2p_p"])
-    g2m_p = np.nansum(d["g2_2m_p"] * d["n_2m_p"]) / np.nansum(d["n_2m_p"])
+    g2_p = np.nansum(dp["noshear"]["g2"] * dp["noshear"]["n"]) / np.nansum(dp["noshear"]["n"])
+    g2p_p = np.nansum(dp["2p"]["g2"] * dp["2p"]["n"]) / np.nansum(dp["2p"]["n"])
+    g2m_p = np.nansum(dp["2m"]["g2"] * dp["2m"]["n"]) / np.nansum(dp["2m"]["n"])
     R22_p = (g2p_p - g2m_p) / 0.02
 
-    g2_m = np.nansum(d["g2_m"] * d["n_m"]) / np.nansum(d["n_m"])
-    g2p_m = np.nansum(d["g2_2p_m"] * d["n_2p_m"]) / np.nansum(d["n_2p_m"])
-    g2m_m = np.nansum(d["g2_2m_m"] * d["n_2m_m"]) / np.nansum(d["n_2m_m"])
+    g2_m = np.nansum(dm["noshear"]["g2"] * dm["noshear"]["n"]) / np.nansum(dm["noshear"]["n"])
+    g2p_m = np.nansum(dm["2p"]["g2"] * dm["2p"]["n"]) / np.nansum(dm["2p"]["n"])
+    g2m_m = np.nansum(dm["2m"]["g2"] * dm["2m"]["n"]) / np.nansum(dm["2m"]["n"])
     R22_m = (g2p_m - g2m_m) / 0.02
 
     # return (g1_p - g1_m) / (R11_p + R11_m) / 0.02 - 1., (g2_p + g2_m) / (R22_p + R22_m)
     # return (g1_p - g1_m) / (R11_p + R11_m) / 0.02 - 1., (g1_p + g1_m) / (R11_p + R11_m)
-    return (g1_p - g1_m) / (R11_p + R11_m) / 0.02 - 1., (g1_p + g1_m) / (R11_p + R11_m), (g2_p + g2_m) / (R22_p + R22_m)
+    return (
+        (g1_p - g1_m) / (R11_p + R11_m) / 0.02 - 1.,  # m1
+        (g1_p + g1_m) / (R11_p + R11_m),  # c1
+        (g2_p + g2_m) / (R22_p + R22_m),  # c2
+    )
 
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "imsim_dir",
+        "catalogs",
         type=str,
-        help="Image simulation output directory",
+        nargs=2,
+        help="Image simulation output catalogs [plus, minus]",
     )
     parser.add_argument(
         "--seed",
@@ -209,13 +122,6 @@ def get_args():
         choices=["jackknife", "bootstrap"],
         help="Resample method [str]",
     )
-    parser.add_argument(
-        "--grid",
-        type=int,
-        required=False,
-        default=1,
-        help="How many patches in the subgrid [int]",
-    )
     return parser.parse_args()
 
 
@@ -223,54 +129,71 @@ def main():
 
     args = get_args()
 
-    grid = args.grid
     resample = args.resample
 
     pairs = {}
 
-    imsim_path = Path(args.imsim_dir)
-    config_name = imsim_path.name
-    tile_dirs = imsim_path.glob("*")
+    fname_p, fname_m = args.catalogs
+    path_p = Path(fname_p)
+    path_m = Path(fname_m)
+    config_p = path_p.parts[-3]
+    config_m = path_m.parts[-3]
+    assert config_p == config_m
 
-    catalogs = util.gather_catalogs(imsim_path)
-    ntiles = len(np.unique([tile for tile in catalogs.keys()]))
+    hf_plus = h5py.File(
+        fname_p,
+        mode="r",
+        locking=False,
+    )
 
-    results = []
-    jobs = [
-        joblib.delayed(grid_file_pair)(catalogs[tile]["plus"], catalogs[tile]["minus"], ngrid=grid)
-        for tile in catalogs.keys()
+    hf_minus = h5py.File(
+        fname_m,
+        mode="r",
+        locking=False,
+    )
+
+    tilenames_p = np.unique(hf_minus["mdet"]["noshear"]["tilename"][:])
+    tilenames_m = np.unique(hf_minus["mdet"]["noshear"]["tilename"][:])
+    tilenames = np.intersect1d(tilenames_p, tilenames_m)
+    ntiles = len(tilenames)
+
+    data = [
+        process_file_pair(hf_plus, hf_minus, tile=tile)
+        for tile in tqdm.tqdm(
+            tilenames,
+            total=ntiles,
+            desc="processing",
+            ncols=80,
+        )
     ]
-    print(f"Processing {len(jobs)} paired simulations")
-
-    with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
-        data = par(jobs)
-
-    data = np.concatenate(data, axis=0)
 
     print(f"Computing uncertainties via {resample}")
     if resample == "bootstrap":
         ns = 1000  # number of bootstrap resamples
         rng = np.random.RandomState(seed=args.seed)
 
-        m_mean, c_mean_1, c_mean_2 = compute_shear_pair(data)
+        dp, dm = concatenate_catalogs(data)
+        m_mean, c_mean_1, c_mean_2 = compute_shear_pair(dp, dm)
 
         print(f"Bootstrapping with {ns} resamples")
         bootstrap = []
-        for i in tqdm.trange(ns, ncols=80):
+        for i in tqdm.trange(ns, desc="bootstrap", ncols=80):
             rind = rng.choice(data.shape[0], size=data.shape[0], replace=True)
             _bootstrap = data[rind]
-            bootstrap.append(compute_shear_pair(_bootstrap))
+            _dp, _dm = concatenate_catalogs(_bootstrap)
+            bootstrap.append(compute_shear_pair(_dp, _dm))
 
         bootstrap = np.array(bootstrap)
         m_std, c_std_1, c_std_2 = np.std(bootstrap, axis=0)
 
     elif resample == "jackknife":
         jackknife = []
-        for i in tqdm.trange(len(data), ncols=80):
+        for i in tqdm.trange(len(data), desc="jackknife", ncols=80):
             _pre = data[:i]
             _post = data[i + 1:]
-            _jackknife = np.concatenate((_pre, _post))
-            jackknife.append(compute_shear_pair(_jackknife))
+            _jackknife = _pre + _post
+            _dp, _dm = concatenate_catalogs(_jackknife)
+            jackknife.append(compute_shear_pair(_dp, _dm))
 
         _n = len(jackknife)
         # m_mean, c_mean_1, c_mean_2 = np.mean(jackknife, axis=0)
@@ -281,41 +204,9 @@ def main():
         m_mean, c_mean_1, c_mean_2 = jackknife_mean
         m_std, c_std_1, c_std_2 = jackknife_std
 
-    # print("\v")
-    # print("m:	(%0.3e, %0.3e)" % (m_mean - m_std * 3, m_mean + m_std * 3))
-    # print("m mean:	%0.3e" % m_mean)
-    # print("m std:	%0.3e [3 sigma]" % (m_std * 3))
-    # print("\v")
-    # print("c:	(%0.3e, %0.3e)" % (c_mean - c_std * 3, c_mean + c_std * 3))
-    # print("c mean:	%0.3e" % c_mean)
-    # print("c std:	%0.3e [3 sigma]" % (c_std * 3))
-    # print("\v")
-    # print(f"| {config_name} | {m_mean:0.3e} | {m_std*3:0.3e} | {c_mean_1:0.3e} | {c_std_1*3:0.3e} | {c_mean_2:0.3e} | {c_std_2*3:0.3e} | {ntiles} | {mfrac} |")
-    results.append(
-        (config_name, m_mean, m_std * 3, c_mean_1, c_std_1 * 3, c_mean_2, c_std_2 * 3, ntiles)
-    )
-
-    print(f"| configuration | m mean | m std (3σ) | c_1 mean | c_1 std (3σ) | c_2 mean | c_2 std (3σ) | # tiles |")
-    # print(f"|---|---|---|---|---|---|")
-    # header = ("configuration", "m mean", "m std (3σ)", "c_1 mean", "c_1 std (3σ)", "c_2 mean", "c_2 std (3σ)", "# tiles", "mfrac")
-    # print(header)
-    # columns = [
-    #     [
-    #         results[i][j] for i in range(len(results))
-    #     ] for j in range(len(results[0]))
-    # ]
-    # data = {
-    #     header[j]: [
-    #         results[i][j] for i in range(len(results))
-    #     ] for j in range(len(results[0]))
-    # }
-    # column_widths = [
-    #     max([range(val) for val in col])
-    #     for col in columns
-    # ]
-    for result in results:
-        # print(result)
-        print(f"| {result[0]} | {result[1]:0.3e} | {result[2]:0.3e} | {result[3]:0.3e} | {result[4]:0.3e} | {result[5]:0.3e} | {result[6]:0.3e} | {result[7]} |")
+    print(f"{config_p}:")
+    print(f"| m mean | 3 * m std | c_1 mean | 3 * c_1 std | c_2 mean | 3 * c_2 std | # tiles |")
+    print(f"| {m_mean:0.3e} | {3 * m_std:0.3e} | {c_mean_1:0.3e} | {3 * c_std_1:0.3e} | {c_mean_2:0.3e} | {3 * c_std_2:0.3e} | {ntiles} |")
 
 
 if __name__ == "__main__":

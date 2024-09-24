@@ -25,14 +25,14 @@ def assign_loggrid(x, y, xmin, xmax, xsteps, ymin, ymax, ysteps):
     return indexx,indexy
 
 
-def _find_shear_weight(dat, wgt_dict, snmin, snmax, sizemin, sizemax, steps, mdet_mom):
+def _find_shear_weight(dat, sel, wgt_dict, snmin, snmax, sizemin, sizemax, steps, mdet_mom):
 
     """
     Assigns shear weights to the objects based on the grids.
     """
 
     if wgt_dict is None:
-        weights = np.ones(len(dat))
+        weights = np.ones(len(dat[sel]))
         return weights
 
     shear_wgt = wgt_dict['weight']
@@ -41,15 +41,15 @@ def _find_shear_weight(dat, wgt_dict, snmin, snmax, sizemin, sizemax, steps, mde
         from scipy.ndimage import gaussian_filter
         smooth_response = gaussian_filter(wgt_dict['response'], sigma=2.0)
         shear_wgt = (smooth_response/wgt_dict['meanes'])**2
-    indexx, indexy = assign_loggrid(np.array(dat[mdet_mom+'_s2n']), np.array(dat[mdet_mom+'_T_ratio']), snmin, snmax, steps, sizemin, sizemax, steps)
+    indexx, indexy = assign_loggrid(np.array(dat[mdet_mom+'_s2n'][sel]), np.array(dat[mdet_mom+'_T_ratio'][sel]), snmin, snmax, steps, sizemin, sizemax, steps)
     weights = np.array([shear_wgt[x, y] for x, y in zip(indexx, indexy)])
 
     return weights
 
 
-def _get_shear_weights(dat, gal_weight_file, shape_err=False):
+def _get_shear_weights(dat, sel, gal_weight_file, shape_err=False):
     if shape_err:
-        return 1/(0.22**2 + 0.5*(np.array(dat['gauss_g_cov_1_1']) + np.array(dat['gauss_g_cov_2_2'])))
+        return 1/(0.22**2 + 0.5*(np.array(dat['gauss_g_cov_1_1'][sel]) + np.array(dat['gauss_g_cov_2_2'][sel])))
     else:
         with open(gal_weight_file, 'rb') as handle:
             wgt_dict = pickle.load(handle)
@@ -58,7 +58,7 @@ def _get_shear_weights(dat, gal_weight_file, shape_err=False):
             sizemin = wgt_dict['yedges'][0]
             sizemax = wgt_dict['yedges'][-1]
             steps = len(wgt_dict['xedges'])-1
-        shear_wgt = _find_shear_weight(dat, wgt_dict, snmin, snmax, sizemin, sizemax, steps, 'gauss')
+        shear_wgt = _find_shear_weight(dat, sel, wgt_dict, snmin, snmax, sizemin, sizemax, steps, 'gauss')
         return shear_wgt
 
 
