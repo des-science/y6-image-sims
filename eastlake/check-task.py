@@ -27,6 +27,9 @@ def check_completed(output_path):
                     status += 1
                 else:
                     print(f"{step} complete")
+    else:
+        print(f"{job_record} not found")
+        status = -1
     return status
 
 

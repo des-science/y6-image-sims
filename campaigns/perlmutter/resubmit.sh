@@ -44,8 +44,8 @@ do
                     index=$(sed -n "/${tilename}/=" ${filename})
                     echo "resubmitting $tilename [$index]"
                     # bash campaigns/perlmutter/submit-array-constant.sh -c ${config} -f ${filename} -j ${index}
-                    echo "sbatch --array=${jobs} campaigns/perlmutter/array-task-${run}.sh -c ${config} -f ${filename}"
-                    # sbatch --array=${jobs} "campaigns/perlmutter/array-task-${run}.sh" -c ${config} -f ${filename}
+                    echo "sbatch --array=${index} campaigns/perlmutter/array-task-${run}.sh -c ${config} -f ${filename}"
+                    sbatch --array=${index} "campaigns/perlmutter/array-task-${run}.sh" -c ${config} -f ${filename}
                     echo ""
                 fi
             fi
