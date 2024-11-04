@@ -134,10 +134,14 @@ def main():
     pairs = {}
 
     fname_p, fname_m = args.catalogs
-    path_p = Path(fname_p)
-    path_m = Path(fname_m)
-    config_p = path_p.parts[-3]
-    config_m = path_m.parts[-3]
+    parts_p = Path(fname_p).parts
+    parts_m = Path(fname_m).parts
+
+    config_p = parts_p[-3]
+    config_m = parts_m[-3]
+
+    shear_p = parts_p[-2].split("__")
+    shear_m = parts_m[-2].split("__")
     assert config_p == config_m
 
     hf_plus = h5py.File(
@@ -204,9 +208,13 @@ def main():
         m_mean, c_mean_1, c_mean_2 = jackknife_mean
         m_std, c_std_1, c_std_2 = jackknife_std
 
-    print(f"{config_p}:")
+    print("\n")
+    print(f"config:  {config_p}")
+    print(f"plus:    {shear_p[0]}, {shear_p[1]}, {shear_p[2]}, {shear_p[3]}, {shear_p[4]}, {shear_p[5]}")
+    print(f"minus:   {shear_m[0]}, {shear_m[1]}, {shear_m[2]}, {shear_m[3]}, {shear_m[4]}, {shear_m[5]}")
     print(f"| m mean | 3 * m std | c_1 mean | 3 * c_1 std | c_2 mean | 3 * c_2 std | # tiles |")
     print(f"| {m_mean:0.3e} | {3 * m_std:0.3e} | {c_mean_1:0.3e} | {3 * c_std_1:0.3e} | {c_mean_2:0.3e} | {3 * c_std_2:0.3e} | {ntiles} |")
+    print("\n")
 
 
 if __name__ == "__main__":

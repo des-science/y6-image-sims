@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+import functools
 import os
 
 import joblib
@@ -36,14 +37,12 @@ def load_file(fname):
     return data[mask]
 
 
-def accumulate_pair(*, pdict, mdict, tile, bins, mdet_mask):
+# def accumulate_pair(*, pdict, mdict, tile, bins, mdet_mask):
+def accumulate_pair(dset_plus, dset_minus, bins, mdet_mask, tile):
     # plus
-    fplus = pdict["catalog"]
+    sel_p = dset_plus["tilename"][:].astype(str) == tile
 
-    data_p = load_file(fplus)
-    cuts_p = selections.get_selection(data_p)
-
-    matcher_p = smatch.Matcher(data_p[cuts_p]["ra"], data_p[cuts_p]["dec"])
+    matcher_p = smatch.Matcher(dset_plus["ra"][sel_p], dset_plus["dec"][sel_p])
     indices_p, distances_p = matcher_p.query_knn(matcher_p.lon, matcher_p.lat, k=2, return_distances=True)
     dnn_p = distances_p[:, 1] * 60 * 60
     del matcher_p, indices_p, distances_p
@@ -55,13 +54,11 @@ def accumulate_pair(*, pdict, mdict, tile, bins, mdet_mask):
         tile,
         "r",
         shear="plus",
-        pizza_slices_dir=pdict["pizza_slices_dir"],
-        des_pizza_slices_dir=os.environ["IMSIM_DATA"],
         mdet_mask=mdet_mask,
     )
     tile_area_p = tile_map_p.get_valid_area(degrees=True)
 
-    n_sample_p = np.sum(cuts_p)
+    n_sample_p = np.sum(sel_p)
 
     rand_ra_p, rand_dec_p = healsparse.make_uniform_randoms(tile_map_p, n_sample_p)
     del tile_map_p
@@ -75,12 +72,9 @@ def accumulate_pair(*, pdict, mdict, tile, bins, mdet_mask):
     del rand_dnn_p
 
     # minus
-    fminus = mdict["catalog"]
+    sel_m = dset_minus["tilename"][:].astype(str) == tile
 
-    data_m = load_file(fminus)
-    cuts_m = selections.get_selection(data_m)
-
-    matcher_m = smatch.Matcher(data_m[cuts_m]["ra"], data_m[cuts_m]["dec"])
+    matcher_m = smatch.Matcher(dset_minus["ra"][sel_m], dset_minus["dec"][sel_m])
     indices_m, distances_m = matcher_m.query_knn(matcher_m.lon, matcher_m.lat, k=2, return_distances=True)
     dnn_m = distances_m[:, 1] * 60 * 60
     del matcher_m, indices_m, distances_m
@@ -92,13 +86,11 @@ def accumulate_pair(*, pdict, mdict, tile, bins, mdet_mask):
         tile,
         "r",
         shear="minus",
-        pizza_slices_dir=pdict["pizza_slices_dir"],
-        des_pizza_slices_dir=os.environ["IMSIM_DATA"],
         mdet_mask=mdet_mask,
     )
     tile_area_m = tile_map_m.get_valid_area(degrees=True)
 
-    n_sample_m = np.sum(cuts_m)
+    n_sample_m = np.sum(sel_m)
 
     rand_ra_m, rand_dec_m = healsparse.make_uniform_randoms(tile_map_m, n_sample_m)
     del tile_map_m
@@ -122,23 +114,11 @@ def get_args():
         help="Image simulation output directory",
     )
     parser.add_argument(
-        "--seed",
-        type=int,
-        required=False,
-        default=1,
-        help="RNG seed [int]",
-    )
-    parser.add_argument(
         "--n_jobs",
         type=int,
         required=False,
         default=8,
         help="Number of joblib jobs [int]",
-    )
-    parser.add_argument(
-        "--fast",
-        action="store_true",
-        help="whether to do a fast run",
     )
     parser.add_argument(
         "--mdet",
@@ -178,9 +158,9 @@ def main():
     #             continue
 
     #         pairs[tile][run] = (fname_plus, fname_minus)
-    pairs = util.gather_sims(args.imsim_dir)
+    # pairs = util.gather_sims(args.imsim_dir)
 
-    ntiles = len([p for p in pairs.values() if p])
+    # ntiles = len([p for p in pairs.values() if p])
 
     hf = h5py.File(
         "/dvs_ro/cfs/projectdirs/des/y6-shear-catalogs/Y6A2_METADETECT_V6/metadetect_cutsv6_all_blinded.h5",
@@ -189,6 +169,28 @@ def main():
         locking=False
     )
     dset = hf["mdet"]["noshear"]
+
+    fname_p = imsim_path / "g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0" / "metadetect_cutsv6_all.h5"
+    hf_plus = h5py.File(
+        fname_p,
+        mode="r",
+        locking=False,
+    )
+
+    fname_m = imsim_path / "g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0" / "metadetect_cutsv6_all.h5"
+    hf_minus = h5py.File(
+        fname_m,
+        mode="r",
+        locking=False,
+    )
+
+    dset_plus = hf_plus["mdet"]["noshear"]
+    dset_minus = hf_minus["mdet"]["noshear"]
+
+    tilenames_p = np.unique(dset_plus["tilename"]).astype(str)
+    tilenames_m = np.unique(dset_minus["tilename"]).astype(str)
+    # np.testing.assert_equal(tilenames_p, tilenames_m)
+    tilenames = np.intersect1d(tilenames_p, tilenames_m)
 
     mdet_mask = util.load_mdet_mask()
     mdet_area = mdet_mask.get_valid_area()
@@ -219,14 +221,14 @@ def main():
 
     hist /= mdet_area
 
-    jobs = [
-        joblib.delayed(accumulate_pair)(pdict=sims["plus"], mdict=sims["minus"], tile=tile, bins=bins, mdet_mask=mdet_mask)
-        for tile, seeds in pairs.items()
-        for seed, sims in seeds.items()
-    ]
-    if args.fast:
-        jobs = jobs[:2]
-    print(f"Processing {len(jobs)} paired simulations")
+    # jobs = [
+    #     joblib.delayed(accumulate_pair)(pdict=sims["plus"], mdict=sims["minus"], tile=tile, bins=bins, mdet_mask=mdet_mask)
+    #     for tile, seeds in pairs.items()
+    #     for seed, sims in seeds.items()
+    # ]
+    # if args.fast:
+    #     jobs = jobs[:2]
+    # print(f"Processing {len(jobs)} paired simulations")
 
     hist_p = np.zeros(len(bins) - 1)
     rand_hist_p = np.zeros(len(bins) - 1)
@@ -234,15 +236,29 @@ def main():
     hist_m = np.zeros(len(bins) - 1)
     rand_hist_m = np.zeros(len(bins) - 1)
     area_m = 0
-    with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
-        # d = par(jobs)
-        for res in par(jobs):
-            hist_p += res[0]
-            rand_hist_p += res[1]
-            area_p += res[2]
-            hist_m += res[3]
-            rand_hist_m += res[4]
-            area_m += res[5]
+    # with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
+    #     # d = par(jobs)
+    #     for res in par(jobs):
+    #         hist_p += res[0]
+    #         rand_hist_p += res[1]
+    #         area_p += res[2]
+    #         hist_m += res[3]
+    #         rand_hist_m += res[4]
+    #         area_m += res[5]
+    for res in tqdm.tqdm(
+        map(
+            functools.partial(accumulate_pair, dset_plus, dset_minus, bins, mdet_mask),
+            tilenames,
+        ),
+        total=len(tilenames),
+        ncols=80,
+    ):
+        hist_p += res[0]
+        rand_hist_p += res[1]
+        area_p += res[2]
+        hist_m += res[3]
+        rand_hist_m += res[4]
+        area_m += res[5]
 
     # hist_sims = np.nanmean([hist_p, hist_m], axis=0)
     # hist_sims /= np.nanmean([area_p, area_m])
@@ -283,20 +299,20 @@ def main():
     # )
     # ax.cax = cax
 
-    # fig, axs = plt.subplots(1, 1, squeeze=False, sharex="row", sharey="row")
-
     plotting.setup()
 
-    fig, axs = plotting.make_axes(
-        1, 1,
-        width=2,
-        height=2,
-        x_margin=1,
-        y_margin=0.5,
-        gutter=1,
-        fig_width=4,
-        fig_height=3,
-    )
+    # fig, axs = plotting.make_axes(
+    #     1, 1,
+    #     width=2,
+    #     height=2,
+    #     x_margin=1,
+    #     y_margin=0.5,
+    #     gutter=1,
+    #     fig_width=4,
+    #     fig_height=3,
+    # )
+    fig, axs = plt.subplots(1, 1, squeeze=False)
+
 
     if args.mdet:
         axs[0, 0].stairs(

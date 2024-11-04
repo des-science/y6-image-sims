@@ -113,7 +113,7 @@ def make_axes(
 
     logger.info(f"making figure of size ({fig_width}, {fig_height})")
     fig = plt.figure(figsize=(fig_width, fig_height))
-    fig.patch.set_alpha(0)
+    # fig.patch.set_alpha(0)
     # fig = mfigure.Figure(figsize=(fig_width, fig_height))
 
     fig_width, fig_height = fig.get_size_inches()

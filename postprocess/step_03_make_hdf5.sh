@@ -31,6 +31,10 @@ mkdir -p ${output_dir}
 pizza-patches-make-hdf5-cats \
     --output-file-base=${output_dir}/"metadetect_cutsv6" \
     --input-file-dir=${input_dir}
+# python ~/software/pizza-patches/bin/pizza-patches-make-hdf5-cats \
+#     --output-file-base=${output_dir}/"metadetect_cutsv6" \
+#     --input-file-dir=${input_dir} \
+#     --run-on-sim
 
 # chmod go-w ${output_dir}/metadetect_cutsv6_all.h5
 # chmod go-w ${output_dir}/metadetect_cutsv6_patch*.h5

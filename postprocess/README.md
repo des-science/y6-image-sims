@@ -30,3 +30,8 @@ bash postprocess/step_03_make_hdf5.sh -c $config -s $shear
 ```
 bash postprocess/run-all.sh -c $config -s $shear
 ```
+
+`run-all-shear.sh` -- run everything for every shear
+```
+bash postprocess/run-all-shears.sh -c $config
+```

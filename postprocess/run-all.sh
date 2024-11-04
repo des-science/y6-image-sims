@@ -1,4 +1,15 @@
 #!/bin/bash
+#SBATCH -J pizza-patches
+#SBATCH -A des
+#SBATCH -C cpu
+#SBATCH -q regular
+#SBATCH -t 04:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=32GB
+#SBATCH --output=logs/slurm_%j.out
+#SBATCH --error=logs/slurm_%j.log
 
 while getopts 'c:s:' opt; do
     case $opt in
@@ -51,7 +62,7 @@ if [[ ! -f ${output_flist} ]]; then
     exit
 else
     echo "removing ${output_flist}"
-    rm ${output_flist}
+    rm -v ${output_flist}
 fi
 
 output_uids=${run}-${shear}_uids.yaml
@@ -61,5 +72,5 @@ if [[ ! -f ${output_uids} ]]; then
     exit
 else
     echo "removing ${output_uids}"
-    rm ${output_uids}
+    rm -v ${output_uids}
 fi

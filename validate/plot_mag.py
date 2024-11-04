@@ -1,11 +1,17 @@
 import argparse
 from pathlib import Path
+import math
 import os
+import functools
+import multiprocessing
 
 import joblib
 import tqdm
 import h5py
 import numpy as np
+import pyarrow as pa
+import pyarrow.compute as pc
+import pyarrow.dataset as ds
 from scipy import stats
 import matplotlib.pyplot as plt
 from matplotlib import colors
@@ -81,25 +87,62 @@ def load_file(fname, cuts=False):
     return data
 
 
-def accumulate_pair(dset_plus, dset_minus, *, tile, band, bins, mdet_mask):
-    # FIXME surely we can improve on this...
-    # cuts_p = dset_plus["tilename"][:].astype(str) == tile
-    # cuts_m = dset_minus["tilename"][:].astype(str) == tile
-    data_p = load_file(dset_plus)
-    data_m = load_file(dset_minus)
-    cuts_p = slice(-1)
-    cuts_m = slice(-1)
+def process_data(dset, tile, func, *args, **kwargs):
+    # with h5py.File(
+    #     fname,
+    #     mode="r",
+    #     locking=False,
+    # ) as hf:
+    #     data = hf["mdet"]["noshear"]
+    #     sel = data["tilename"][:].astype(str) == tile
+    #     res = func(data, sel, *args, **kwargs)
+    # ---
+    sel = dset["tilename"][:].astype(str) == tile
+    res = func(dset, sel, *args, **kwargs)
+
+    return res
+
+
+def accumulate_hist(dset, band, bins, mdet_mask, shear, tile):
+
+    # data = load_file(dset)
+    # cuts = data["mdet_flags"] == 0
+    # data = data[cuts]
+    # cuts = slice(None)
+    # hist = mag_hist(data, cuts, band, bins)
+
+    # ---
+
+    hist = process_data(dset, tile, mag_hist, band, bins)
+
+    tile_area = util.get_tile_area(
+        tile,
+        band,
+        shear=shear,
+        mdet_mask=mdet_mask,
+    )
+
+    return hist, tile_area
+
+
+# def accumulate_pair(fname_p, fname_m, band, bins, mdet_mask, tile):
+# def accumulate_pair(catalogs, band, bins, mdet_mask, tile):
+def accumulate_pair(dset_plus, dset_minus, band, bins, mdet_mask, tile):
+    # dset_plus = catalogs[tile]["plus"]
+    # dset_minus = catalogs[tile]["minus"]
+
+    # data_p = load_file(dset_plus)
     # cuts_p = data_p["mdet_flags"] == 0
+    # hist_p = mag_hist(data_p, cuts_p, band, bins)
+
+    # data_m = load_file(dset_minus)
     # cuts_m = data_m["mdet_flags"] == 0
+    # hist_m = mag_hist(data_m, cuts_m, band, bins)
 
-    hist_p = mag_hist(data_p, cuts_p, band, bins)
-    hist_m = mag_hist(data_m, cuts_m, band, bins)
+    # ---
 
-    # hsp_plus = pdict["mask"]
-    # hsp_minus = mdict["mask"]
-
-    # hsp_map_p = healsparse.HealSparseMap.read(hsp_plus)
-    # hsp_map_m = healsparse.HealSparseMap.read(hsp_minus)
+    hist_p = process_data(dset_plus, tile, mag_hist, band, bins)
+    hist_m = process_data(dset_minus, tile, mag_hist, band, bins)
 
     tile_area_p = util.get_tile_area(
         tile,
@@ -129,23 +172,11 @@ def get_args():
         help="Image simulation output directory",
     )
     parser.add_argument(
-        "--seed",
-        type=int,
-        required=False,
-        default=1,
-        help="RNG seed [int]",
-    )
-    parser.add_argument(
         "--n_jobs",
         type=int,
         required=False,
         default=8,
         help="Number of joblib jobs [int]",
-    )
-    parser.add_argument(
-        "--fast",
-        action="store_true",
-        help="whether to do a fast run",
     )
     return parser.parse_args()
 
@@ -154,30 +185,68 @@ def main():
 
     args = get_args()
 
+    n_jobs = args.n_jobs
+    pa.set_cpu_count(n_jobs)
+    pa.set_io_thread_count(2 * n_jobs)
+
     # pairs = {}
 
     imsim_path = Path(args.imsim_dir)
     config_name = imsim_path.name
     # tile_dirs = imsim_path.glob("*")
 
-    # hf_plus = h5py.File(
-    #     imsim_path / "plus" / "metadetect_cutsv6_all.h5",
-    #     mode="r",
-    #     locking=False,
-    # )
-    # hf_minus = h5py.File(
-    #     imsim_path / "minus" / "metadetect_cutsv6_all.h5",
-    #     mode="r",
-    #     locking=False,
-    # )
+    # TODO
+    fname_p = imsim_path / "g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0" / "metadetect_cutsv6_all.h5"
+    hf_plus = h5py.File(
+        fname_p,
+        mode="r",
+        locking=False,
+    )
 
+    fname_m = imsim_path / "g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0" / "metadetect_cutsv6_all.h5"
+    hf_minus = h5py.File(
+        fname_m,
+        mode="r",
+        locking=False,
+    )
 
-    # dset_plus = hf_plus["mdet"]["noshear"]
-    # dset_minus = hf_minus["mdet"]["noshear"]
+    dset_plus = hf_plus["mdet"]["noshear"]
+    dset_minus = hf_minus["mdet"]["noshear"]
 
-    # tilenames = np.unique(dset_plus["tilename"]).astype(str)
-    # np.testing.assert_equal(tilenames, np.unique(dset_minus["tilename"]).astype(str))
-    catalogs = util.gather_catalogs(imsim_path)
+    tilenames_p = np.unique(dset_plus["tilename"]).astype(str)
+    tilenames_m = np.unique(dset_minus["tilename"]).astype(str)
+    # np.testing.assert_equal(tilenames_p, tilenames_m)
+    tilenames = np.intersect1d(tilenames_p, tilenames_m)
+
+    # ---
+    plus_path = os.path.join(
+        imsim_path,
+        "g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0",
+    )
+
+    minus_path = os.path.join(
+        imsim_path,
+        "g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0",
+    )
+
+    # predicate = (pc.field("mdet_step") == "noshear")
+
+    # dset_plus = ds.dataset(plus_path).filter(predicate)
+    # dset_minus = ds.dataset(minus_path).filter(predicate)
+
+    # print(f"plus: {dset_plus.count_rows()} rows")
+    # print(f"minus: {dset_minus.count_rows()} rows")
+
+    # tilenames = util.get_tilenames(dset_plus, dset_minus)
+    # print(f"{len(tilenames)} tiles")
+
+    # ---
+
+    # catalogs = util.gather_catalogs(imsim_path)
+    # tilenames = list(catalogs.keys())
+    # print(f"{len(tilenames)} tiles")
+
+    # ---
 
     hf = h5py.File(
         "/dvs_ro/cfs/projectdirs/des/y6-shear-catalogs/Y6A2_METADETECT_V6/metadetect_cutsv6_all_blinded.h5",
@@ -193,7 +262,7 @@ def main():
     bands = ["g", "r", "i", "z"]
     # bands = ["i"]
 
-    # fig, axs = plt.subplots(1, len(bands), squeeze=False, sharex="row", sharey="row")
+    # fig, axs = plt.subplots(2, len(bands), sharex="row", sharey="row", constrained_layout=True, squeeze=False)
     fig, axs = plotting.make_axes(
         2, 4,
         width=2,
@@ -220,25 +289,28 @@ def main():
             len(bins) - 1
         )
         # TODO
-        # for sl in dset["patch_num"].iter_chunks():
-        #     print(f"reading slice {sl} of mdet")
-        #     _hist = mag_hist(dset, sl, band, bins)
-        #     hist += _hist
-        # TODO
-        mdet_area = 0
-        for _mdet_file in Path("/global/cfs/cdirs/des/y6-shear-catalogs/Y6A2_METADETECT_V6_UNBLINDED/tiles/").glob("*.fits"):
-            _d = load_file(_mdet_file, cuts=True)
-            _cuts = slice(-1)
-            _hist = mag_hist(_d, _cuts, band, bins)
+        for sl in tqdm.tqdm(
+            dset["patch_num"].iter_chunks(),
+            total=math.ceil(dset["patch_num"].len() / dset["patch_num"].chunks[0]),
+            ncols=80,
+        ):
+            _hist = mag_hist(dset, sl, band, bins)
             hist += _hist
-            tile_name = _mdet_file.name.split("_")[0]
-            _tile_area = util.get_tile_area(
-                tile_name,
-                "r",
-                mdet_mask=mdet_mask,
-                border=False,
-            )
-            mdet_area += _tile_area
+        # TODO
+        # mdet_area = 0
+        # for _mdet_file in Path("/global/cfs/cdirs/des/y6-shear-catalogs/Y6A2_METADETECT_V6_UNBLINDED/tiles/").glob("*.fits"):
+        #     _d = load_file(_mdet_file, cuts=True)
+        #     _cuts = slice(-1)
+        #     _hist = mag_hist(_d, _cuts, band, bins)
+        #     hist += _hist
+        #     tile_name = _mdet_file.name.split("_")[0]
+        #     _tile_area = util.get_tile_area(
+        #         tile_name,
+        #         "r",
+        #         mdet_mask=mdet_mask,
+        #         border=False,
+        #     )
+        #     mdet_area += _tile_area
         # TODO
 
         hist /= mdet_area
@@ -247,19 +319,70 @@ def main():
         hist_m = np.zeros(len(bins) - 1)
         area_p = 0
         area_m = 0
-        jobs = [
-            joblib.delayed(accumulate_pair)(catalogs[tile]["plus"], catalogs[tile]["minus"], tile=tile, band=band, bins=bins, mdet_mask=mdet_mask)
-            for tile in catalogs.keys()
-        ]
-        with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
-            for res in par(jobs):
-                hist_p += res[0]
-                area_p += res[1]
-                hist_m += res[2]
-                area_m += res[3]
+        # with multiprocessing.Pool(
+        #     8,
+        # ) as pool:
+        #     results = pool.imap(
+        #         functools.partial(accumulate_pair, fname_p, fname_m, band, bins, mdet_mask),
+        #         (tilenames)
+        #     )
+        #     for res in track(results, total=len(tilenames)):
+        #         hist_p += res[0]
+        #         area_p += res[1]
+        #         hist_m += res[2]
+        #         area_m += res[3]
+        # ---
+        # with multiprocessing.Pool(
+        #     args.n_jobs,
+        # ) as pool:
+        #     results = pool.imap(
+        #         functools.partial(accumulate_pair, catalogs, band, bins, mdet_mask),
+        #         tilenames,
+        #     )
+        #     for res in track(
+        #         results,
+        #         total=len(tilenames),
+        #     ):
+        #         hist_p += res[0]
+        #         area_p += res[1]
+        #         hist_m += res[2]
+        #         area_m += res[3]
+        # ---
+        for res in tqdm.tqdm(
+            map(
+                functools.partial(accumulate_pair, dset_plus, dset_minus, band, bins, mdet_mask),
+                tilenames,
+            ),
+            total=len(tilenames),
+            ncols=80,
+        ):
+            hist_p += res[0]
+            area_p += res[1]
+            hist_m += res[2]
+            area_m += res[3]
+        # ---
+        # for res in track(
+        #     map(
+        #         functools.partial(accumulate_hist, dset_plus, band, bins, mdet_mask, "plus"),
+        #         tilenames,
+        #     ),
+        #     total=len(tilenames),
+        # ):
+        #     hist_p += res[0]
+        #     area_p += res[1]
+        # for res in track(
+        #     map(
+        #         functools.partial(accumulate_hist, dset_minus, band, bins, mdet_mask, "minus"),
+        #         tilenames,
+        #     ),
+        #     total=len(tilenames),
+        # ):
+        #     hist_m += res[0]
+        #     area_m += res[1]
 
         # hist_sims = np.nanmean([hist_p, hist_m], axis=0)
         # hist_sims /= np.nanmean([area_p, area_m])
+        # ---
         hist_sims = np.nanmean([hist_p / area_p, hist_m / area_m], axis=0)
 
         ax = axs[0, i]

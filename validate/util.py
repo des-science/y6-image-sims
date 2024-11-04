@@ -7,9 +7,13 @@ from pathlib import Path
 import numpy as np
 
 import galsim
+import h5py
 import hpgeom as hpg
 import healsparse
 import yaml
+import pyarrow.compute as pc
+import pyarrow.dataset as ds
+from pyarrow import acero
 
 
 logger = logging.getLogger(__name__)
@@ -95,7 +99,14 @@ def get_tile_mask(tile, band, shear=None, mdet_mask=None, border=True):
         value=True,
     )
 
-    valid_map = extractor(mdet_mask, polygon)
+    if mdet_mask is not None:
+        valid_map = extractor(mdet_mask, polygon)
+    else:
+        valid_map = polygon.get_map(
+            nside_coverage=32,
+            nside_sparse=131072,
+            dtype=np.bool_,
+        )
 
     return valid_map
 
@@ -103,10 +114,6 @@ def get_tile_mask(tile, band, shear=None, mdet_mask=None, border=True):
 def get_tile_area(tile, band, shear=None, mdet_mask=None, border=True):
     logger.info(f"computing effective tile area for {tile}/{band}")
     valid_map = get_tile_mask(tile, band, shear=shear, mdet_mask=mdet_mask, border=border)
-    # nside_sparse = mdet_mask.nside_sparse
-    # valid_area = np.sum(
-    #      valid_mask,
-    # ) * hpg.nside_to_pixel_area(nside_sparse, degrees=True)
     valid_area = valid_map.get_valid_area(degrees=True)
     logger.info(f"effective tile area for {tile}/{band}: {valid_area:.3f} deg^2")
 
@@ -179,14 +186,27 @@ def gather_inputs():
 # 
 #     return pairs
 
+# def gather_catalogs(imsim_path):
+#     catalogs = {}
+#     for catalog_file in (imsim_path / "g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0").glob("*"):
+# 
+#         catalogs["plus"] = str(catalog_file)
+# 
+#     for catalog_file in (imsim_path / "g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0").glob("*"):
+#         catalogs["minus"] = str(catalog_file)
+# 
+#     return catalogs
 def gather_catalogs(imsim_path):
     catalogs = {}
     for catalog_file in (imsim_path / "g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0").glob("*"):
+        tilename = catalog_file.name.split("_")[0]
 
-        catalogs["plus"] = str(catalog_file)
+        catalogs[tilename] = {}
+        catalogs[tilename]["plus"] = str(catalog_file)
 
     for catalog_file in (imsim_path / "g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0").glob("*"):
-        catalogs["minus"] = str(catalog_file)
+        tilename = catalog_file.name.split("_")[0]
+        catalogs[tilename]["minus"] = str(catalog_file)
 
     return catalogs
 
@@ -214,3 +234,78 @@ def get_percentile(hist, level):
     return percentile
 
 
+
+def get_tilenames(dset_plus, dset_minus):
+    scan_node_p = acero.Declaration(
+        "scan",
+        acero.ScanNodeOptions(
+            dset_plus,
+            columns=["tilename"],
+        ),
+    )
+    aggregate_node_p = acero.Declaration(
+        "aggregate",
+        acero.AggregateNodeOptions(
+            [
+                ("tilename", "hash_count", None, "count"),
+            ],
+            keys=["tilename"],
+        ),
+        inputs=[scan_node_p],
+    )
+
+    scan_node_m = acero.Declaration(
+        "scan",
+        acero.ScanNodeOptions(
+            dset_minus,
+            columns=["tilename"],
+        ),
+    )
+    aggregate_node_m = acero.Declaration(
+        "aggregate",
+        acero.AggregateNodeOptions(
+            [
+                ("tilename", "hash_count", None, "count"),
+            ],
+            keys=["tilename"],
+        ),
+        inputs=[scan_node_m],
+    )
+
+    join_node = acero.Declaration(
+        "hashjoin",
+        acero.HashJoinNodeOptions(
+            "inner",
+            ["tilename"],
+            ["tilename"],
+            left_output=["tilename", "count"],
+            right_output=["count"],
+            output_suffix_for_left="_p",
+            output_suffix_for_right="_m",
+        ),
+        inputs=[aggregate_node_p, aggregate_node_m],
+    )
+
+    plan = join_node
+
+    print(plan)
+    res = plan.to_table(use_threads=True)
+    tilenames = res["tilename"].to_pylist()
+
+    return tilenames
+
+
+def get_column(data, column, predicate=None):
+    match data:
+        case h5py.Group():
+            if predicate is None:
+                predicate = slice(None)
+            return data[column][predicate]
+        case ds.Dataset():
+            _table = data.to_table(
+                filter=predicate,
+                columns=[column],
+            )
+            return _table[column].to_numpy()
+        case _:
+            return None

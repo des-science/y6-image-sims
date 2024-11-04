@@ -1,5 +1,7 @@
 import argparse
+import math
 from pathlib import Path
+import functools
 import os
 
 import joblib
@@ -26,7 +28,7 @@ NBINS = 100
 BINS = {
     "logsnr": np.linspace(0, 5, NBINS),
     # "logsize": np.linspace(-0.1, 0.4, NBINS),
-    "size": np.linspace(-1, 1, NBINS),
+    "size": np.linspace(-1, 3, NBINS),
 }
 
 
@@ -99,8 +101,24 @@ def size_snr_hist(data, mask, bins):
     return hist
 
 
+def process_data(dset, tile, func, *args, **kwargs):
+    # with h5py.File(
+    #     fname,
+    #     mode="r",
+    #     locking=False,
+    # ) as hf:
+    #     data = hf["mdet"]["noshear"]
+    #     sel = data["tilename"][:].astype(str) == tile
+    #     res = func(data, sel, *args, **kwargs)
+    # ---
+    sel = dset["tilename"][:].astype(str) == tile
+    res = func(dset, sel, *args, **kwargs)
 
-def accumulate_pair(dset_plus, dset_minus, *, tile, bins, mdet_mask):
+    return res
+
+
+# def accumulate_pair(dset_plus, dset_minus, *, tile, bins, mdet_mask):
+def accumulate_pair(dset_plus, dset_minus, bins, mdet_mask, tile):
     # fplus = pdict["catalog"]
     # fminus = mdict["catalog"]
 
@@ -110,15 +128,18 @@ def accumulate_pair(dset_plus, dset_minus, *, tile, bins, mdet_mask):
     # cuts_p = selections.get_selection(data_p)
     # cuts_m = selections.get_selection(data_m)
 
-    data_p = load_file(dset_plus)
-    data_m = load_file(dset_minus)
-    cuts_p = slice(-1)
-    cuts_m = slice(-1)
-    # cuts_p = data_p["mdet_flags"] == 0
-    # cuts_m = data_m["mdet_flags"] == 0
+    # data_p = load_file(dset_plus)
+    # data_m = load_file(dset_minus)
+    # cuts_p = slice(-1)
+    # cuts_m = slice(-1)
+    # # cuts_p = data_p["mdet_flags"] == 0
+    # # cuts_m = data_m["mdet_flags"] == 0
 
-    hist_p = size_snr_hist(data_p, cuts_p, bins)
-    hist_m = size_snr_hist(data_m, cuts_m, bins)
+    # hist_p = size_snr_hist(data_p, cuts_p, bins)
+    # hist_m = size_snr_hist(data_m, cuts_m, bins)
+
+    hist_p = process_data(dset_minus, tile, size_snr_hist, bins)
+    hist_m = process_data(dset_minus, tile, size_snr_hist, bins)
 
     tile_area_p = util.get_tile_area(
         tile,
@@ -144,23 +165,11 @@ def get_args():
         help="Image simulation output directory",
     )
     parser.add_argument(
-        "--seed",
-        type=int,
-        required=False,
-        default=1,
-        help="RNG seed [int]",
-    )
-    parser.add_argument(
         "--n_jobs",
         type=int,
         required=False,
         default=8,
         help="Number of joblib jobs [int]",
-    )
-    parser.add_argument(
-        "--fast",
-        action="store_true",
-        help="whether to do a fast run",
     )
     return parser.parse_args()
 
@@ -188,6 +197,28 @@ def main():
 
     mdet_mask = util.load_mdet_mask()
     mdet_area = mdet_mask.get_valid_area()
+
+    fname_p = imsim_path / "g1_slice=0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0" / "metadetect_cutsv6_all.h5"
+    hf_plus = h5py.File(
+        fname_p,
+        mode="r",
+        locking=False,
+    )
+
+    fname_m = imsim_path / "g1_slice=-0.02__g2_slice=0.00__g1_other=0.00__g2_other=0.00__zlow=0.0__zhigh=6.0" / "metadetect_cutsv6_all.h5"
+    hf_minus = h5py.File(
+        fname_m,
+        mode="r",
+        locking=False,
+    )
+
+    dset_plus = hf_plus["mdet"]["noshear"]
+    dset_minus = hf_minus["mdet"]["noshear"]
+
+    tilenames_p = np.unique(dset_plus["tilename"]).astype(str)
+    tilenames_m = np.unique(dset_minus["tilename"]).astype(str)
+    # np.testing.assert_equal(tilenames_p, tilenames_m)
+    tilenames = np.intersect1d(tilenames_p, tilenames_m)
 
     plotting.setup()
     # fig, axs = plt.subplots(len(all_axes), 3, squeeze=False, sharex="row", sharey="row")
@@ -218,20 +249,27 @@ def main():
     #     # hist += _hist
     #     hist = np.nansum([hist, _hist], axis=0)
     #
+    for sl in tqdm.tqdm(
+        dset["patch_num"].iter_chunks(),
+        total=math.ceil(dset["patch_num"].len() / dset["patch_num"].chunks[0]),
+        ncols=80,
+    ):
+        _hist = size_snr_hist(dset, sl, bins)
+        hist = np.nansum([hist, _hist], axis=0)
     # TODO
-    mdet_area = 0
-    for _mdet_file in Path("/global/cfs/cdirs/des/y6-shear-catalogs/Y6A2_METADETECT_V6_UNBLINDED/tiles/").glob("*.fits"):
-        _d = load_file(_mdet_file, cuts=True)
-        _cuts = slice(-1)
-        _hist = size_snr_hist(_d, _cuts, bins)
-        hist += _hist
-        tile_name = _mdet_file.name.split("_")[0]
-        _tile_area = util.get_tile_area(
-            tile_name,
-            "r",
-            mdet_mask=mdet_mask,
-        )
-        mdet_area += _tile_area
+    # mdet_area = 0
+    # for _mdet_file in Path("/global/cfs/cdirs/des/y6-shear-catalogs/Y6A2_METADETECT_V6_UNBLINDED/tiles/").glob("*.fits"):
+    #     _d = load_file(_mdet_file, cuts=True)
+    #     _cuts = slice(-1)
+    #     _hist = size_snr_hist(_d, _cuts, bins)
+    #     hist += _hist
+    #     tile_name = _mdet_file.name.split("_")[0]
+    #     _tile_area = util.get_tile_area(
+    #         tile_name,
+    #         "r",
+    #         mdet_mask=mdet_mask,
+    #     )
+    #     mdet_area += _tile_area
     # TODO
     hist /= mdet_area
 
@@ -240,23 +278,35 @@ def main():
     #     for tile, seeds in pairs.items()
     #     for seed, sims in seeds.items()
     # ]
-    jobs = [
-            joblib.delayed(accumulate_pair)(catalogs[tile]["plus"], catalogs[tile]["minus"], tile=tile, bins=bins, mdet_mask=mdet_mask)
-            for tile in catalogs.keys()
-        ]
-    print(f"Processing {len(jobs)} paired simulations")
+    # jobs = [
+    #         joblib.delayed(accumulate_pair)(catalogs[tile]["plus"], catalogs[tile]["minus"], tile=tile, bins=bins, mdet_mask=mdet_mask)
+    #         for tile in catalogs.keys()
+    #     ]
+    # print(f"Processing {len(jobs)} paired simulations")
 
     hist_p = np.zeros((len(bins[0]) - 1, len(bins[1]) - 1))
     hist_m = np.zeros((len(bins[0]) - 1, len(bins[1]) - 1))
     area_p = 0
     area_m = 0
-    with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
-        # d = par(jobs)
-        for res in par(jobs):
-            hist_p = np.nansum([hist_p, res[0]], axis=0)
-            area_p = np.nansum([area_p, res[1]], axis=0)
-            hist_m = np.nansum([hist_m, res[2]], axis=0)
-            area_m = np.nansum([area_m, res[3]], axis=0)
+    # with joblib.Parallel(n_jobs=args.n_jobs, backend="loky", verbose=10) as par:
+    #     # d = par(jobs)
+    #     for res in par(jobs):
+    #         hist_p = np.nansum([hist_p, res[0]], axis=0)
+    #         area_p = np.nansum([area_p, res[1]], axis=0)
+    #         hist_m = np.nansum([hist_m, res[2]], axis=0)
+    #         area_m = np.nansum([area_m, res[3]], axis=0)
+    for res in tqdm.tqdm(
+        map(
+            functools.partial(accumulate_pair, dset_plus, dset_minus, bins, mdet_mask),
+            tilenames,
+        ),
+        total=len(tilenames),
+        ncols=80,
+    ):
+        hist_p = np.nansum([hist_p, res[0]], axis=0)
+        area_p = np.nansum([area_p, res[1]], axis=0)
+        hist_m = np.nansum([hist_m, res[2]], axis=0)
+        area_m = np.nansum([area_m, res[3]], axis=0)
 
     # hist_p, hist_m = np.sum(d, axis=0)
 
