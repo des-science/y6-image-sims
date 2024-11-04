@@ -9,10 +9,13 @@
 | [grid](grid.yaml) | 400 | ✓ | | ✓ | ✓ | galaxies placed on a grid | 4 | 3,200 |
 | [grid-exp](grid-exp.yaml) | 100 | ✓ | | ✓ | | bright exponentials placed on a grid with PSFs evaluated at the median galaxy color | 2 | 400 |
 
+---
 
 - constant shear: (0.02, 0.00) and (-0.02, 0.00) for z ∈ [0, 6]
 - redshift shear: (0.02, 0.00) inside slice, (-0.02, 0.00) outside slice
 - redshift slices: [0.0, 0.3], [0.3, 0.6], [0.6, 0.9], [0.9, 1.2], [1.2, 1.5], [1.5, 1.8], [1.8, 2.1], [2.1, 2.4], [2.4, 2.7], [2.7, 6.0]
+
+---
 
 grid-exp
 | m mean | 3 * m std | c_1 mean | 3 * c_1 std | c_2 mean | 3 * c_2 std | # tiles |
@@ -44,6 +47,7 @@ fiducial
 |---|---|---|---|---|---|---|
 | 3.455e-03 | 9.709e-03 | 6.292e-05 | 3.987e-04 | 1.062e-05 | 4.170e-04 | 395 |
 
+---
 
 fiducial - median_color
 | dm mean | 3 * dm std | dc_1 mean | 3 * dc_1 std | dc_2 mean | 3 * dc_2 std | # tiles |
