@@ -1,15 +1,4 @@
 #!/bin/bash
-#SBATCH -J pizza-patches
-#SBATCH -A des
-#SBATCH -C cpu
-#SBATCH -q regular
-#SBATCH -t 04:00:00
-#SBATCH --ntasks=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=32GB
-#SBATCH --output=logs/slurm_%j.out
-#SBATCH --error=logs/slurm_%j.log
 
 while getopts 'c:s:' opt; do
     case $opt in

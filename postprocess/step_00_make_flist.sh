@@ -24,11 +24,20 @@ echo "shear: ${shear}"
 
 run=$(basename ${config} .yaml)
 
-input_dir=${SCRATCH}/y6-image-sims/${run}
+# perlmutter sims
+input_dir="${SCRATCH}/y6-image-sims/${run}"
 output_flist=${run}-${shear}_flist.txt
 touch ${output_flist}
 
 for fname in ${input_dir}/DES**/**/${shear}/des-pizza-slices-y6/DES**/metadetect/*_metadetect-config_mdetcat_part0000.fits
+do
+    echo ${fname}
+    echo ${fname} >> ${output_flist}
+done
+
+# degrid sims
+input_dir="/pscratch/sd/d/dhayaa/y6-image-sims/campaigns/${run}"
+for fname in ${input_dir}/DES**/${shear}/metadetect/*_metadetect-config_mdetcat_part0000.fits
 do
     echo ${fname}
     echo ${fname} >> ${output_flist}
